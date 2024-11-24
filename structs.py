@@ -50,12 +50,9 @@ class Package:
         self.cost = int(cost)
         self.rotation = Rotation.LWH
 
-    #to sort by cost
-    def __lt__(self,other):
-        return self.cost<other.cost
 
     def getVolume(self):
-        return self.length*self.height*self.height
+        return self.length*self.width*self.height
     
 
     def isIntersecting(self,other):
@@ -83,6 +80,7 @@ class ULD:
         self.height = int(height)
         self.weight_limit = int(weight_limit)
         self.id = id
+        self.isPriority = False
         self.packages = []
     
     def weightLeft(self):
@@ -90,6 +88,9 @@ class ULD:
         for package in self.packages: curr-=package.weight
         return curr
     
+    def getVolume(self):
+        return self.length*self.width*self.height
+
     def addBox(self, currPackage, pivot, rotations = Rotation.ALL):
         prevPosition = currPackage.position
         currPackage.position = pivot
@@ -102,7 +103,8 @@ class ULD:
             if (
                 self.length < pivot[0] + dimensions[0] or
                 self.width < pivot[1] + dimensions[1] or
-                self.height < pivot[2] + dimensions[2]
+                self.height < pivot[2] + dimensions[2] or
+                pivot[0] < 0 or pivot[1] < 0 or pivot[2] < 0
             ): continue
 
             valid = True
@@ -118,11 +120,26 @@ class ULD:
                 currPackage.ULD = self.id
                 #do we need to deepcopy this?
                 self.packages.append(currPackage)
+                if(currPackage.priority == "Priority"): self.isPriority = True
                 return valid
             
         currPackage.position = prevPosition
         return valid
     
+    def getNewCorners(self,package,corner):
+        dimensions = package.getDimensions()
+        new_corners = [
+            [corner[0] + dimensions[0], corner[1], corner[2]],
+            [corner[0], corner[1] + dimensions[1], corner[2]],
+            [corner[0], corner[1], corner[2] + dimensions[2]],
+            [corner[0] + dimensions[0], corner[1] + dimensions[1], corner[2]],
+            [corner[0] + dimensions[0], corner[1], corner[2] + dimensions[2]],
+            [corner[0], corner[1] + dimensions[1], corner[2] + dimensions[2]],
+            [corner[0] + dimensions[0], corner[1] + dimensions[1], corner[2] + dimensions[2]]
+        ]
+        return new_corners
+
     def clearBin(self):
         self.packages = []
     
+
