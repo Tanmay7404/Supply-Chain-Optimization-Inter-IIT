@@ -49,6 +49,7 @@ class Package:
         self.priority = priority
         self.cost = int(cost)
         self.rotation = Rotation.LWH
+        self.pqPriority = 0
 
 
     def getVolume(self):
@@ -72,6 +73,8 @@ class Package:
 
         return dim
 
+    def getCenterOfMass(self):
+        return [self.position[0] + self.length/2, self.position[1] + self.width/2, self.position[2] + self.height/2]
     
 class ULD:
     def __init__(self,length,width,height,weight_limit,id):
@@ -141,5 +144,19 @@ class ULD:
 
     def clearBin(self):
         self.packages = []
+        self.isPriority = False
     
 
+
+    def getLoadCenterOfMass(self):
+        x = 0
+        y = 0
+        z = 0
+        for package in self.packages:
+            com = package.getCenterOfMass()
+            weight = package.weight
+            x+=com[0]*weight
+            y+=com[1]*weight
+            z+=com[2]*weight
+        totalWeight = sum([package.weight for package in self.packages])
+        return [x/totalWeight,y/totalWeight,z/totalWeight]

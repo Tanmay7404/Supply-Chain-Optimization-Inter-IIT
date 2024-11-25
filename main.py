@@ -1,64 +1,8 @@
 from structs import ULD,Package
+from solver import Solver
 import csv
 
 
-
-class Solver1:
-    
-    def __init__(self,packages,ulds):
-        self.packages = packages
-        self.ulds = ulds
-        self.priorityDone = 0
-        self.priority = []
-        self.economy = []
-
-        for package in packages:
-            if package.priority == "Priority":
-                self.priority.append(package)
-            else:
-                self.economy.append(package)
-        #most expensive to ship first
-        # self.ulds.sort(key=lambda x: x.weight_limit,reverse=True)
-        self.ulds.sort(key=lambda x: x.getVolume(),reverse=True)
-        self.priority.sort(key=lambda x: x.getVolume(),reverse=True)
-        self.economy.sort(key=lambda x: x.getVolume(),reverse=True)
-
-    def solve(self):
-        for uld in self.ulds:
-            print("ULD: ",uld.id)
-            corners = [[0,0,0]]
-            if self.priorityDone < 103:
-                for package in self.priority:
-                    if package.ULD == -1: 
-                        done = False
-                        for corner in corners:
-                            if(uld.addBox(package,corner)):
-                                #remove this corner and add the other 7 corner 
-                                corners.remove(corner)
-                                new_corners = uld.getNewCorners(package, corner)
-                                corners.extend(new_corners)
-                                #sort the corners by the z value
-                                # corners.sort(key=lambda x: x[0])
-                                # corners.sort(key=lambda x: x[1])
-                                corners.sort(key=lambda x: x[2])
-
-                                done = True
-                                break
-                        if done:
-                            self.priorityDone+=1
-            for package in self.economy:
-                if package.ULD == -1: 
-                    done = False
-                    for corner in corners:
-                        if(uld.addBox(package,corner)):
-                            #remove this corner and add the other 7 corner 
-                            corners.remove(corner)
-                            new_corners = uld.getNewCorners(package, corner)
-                            corners.extend(new_corners)
-                            done = True
-                            break
-                    if done:
-                        self.priorityDone+=1
 
 
 
@@ -124,6 +68,6 @@ getPackages()
 getULD()
 
 
-solver = Solver1(packages,ulds)
+solver = Solver(packages,ulds)
 solver.solve()
 metrics(ulds)
