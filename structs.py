@@ -143,6 +143,9 @@ class ULD:
         return new_corners
 
     def clearBin(self):
+        for package in self.packages:
+            package.ULD = -1
+            package.position = [-1,-1,-1]
         self.packages = []
         self.isPriority = False
     
