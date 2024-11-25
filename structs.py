@@ -21,13 +21,13 @@ def isIntersecting(package1,package2,x,y):
 
 class Rotation:
     LWH = 0
-    WLH = 1
-    HLW = 2
-    HWL = 3
-    LHW = 4
-    WHL = 5
+    LHW = 1
+    WLH = 2
+    WHL = 3
+    HLW = 4
+    HWL = 5
 
-    ALL = [LWH,WLH,HLW,HWL,LHW,WHL]
+    ALL = [LWH,LHW,WLH,WHL,HLW,HWL]
  
 class Axis:
     LENGTH = 0
@@ -44,6 +44,7 @@ class Package:
         self.length = int(length)
         self.width = int(width)
         self.height = int(height)
+        [self.length,self.width,self.height] = sorted([self.length,self.width,self.height])
         self.weight = int(weight)
         self.id = id
         self.priority = priority
@@ -51,6 +52,9 @@ class Package:
         self.rotation = Rotation.LWH
         self.pqPriority = 0
 
+    def getMaxBase(self):
+        #already sorted
+        return self.length*self.width
 
     def getVolume(self):
         return self.length*self.width*self.height
