@@ -102,5 +102,34 @@ class Solver:
         for uld in self.ulds:
             [corners, _] = self.fitPackages(self.takenPackages,uld,cornermap[uld.id])
             cornermap[uld.id] = corners
+    
+
+
+    def bestFitPackage(self,package,corners):
+        uld = -1
+        corner = -1
+        #corners = {uld_id: [corner1, corner2, ...]}
+        return [uld, corner]
+
+    def bestFitSolve(self):
+        #choose the best corner out of all ulds for the package
+        corners = {}
+        for uld in self.ulds:
+            corners[uld.id] = [[0,0,0]]
+        
+        self.selectPackages()
+        self.sortPackages(self.takenPackages)
+        self.sortULDs()
+
+        for package in self.takenPackages:
+            [uld, corner] = self.bestFitPackage(package,corners)
+            if uld != -1:
+                uld.addBox(package,corner)
+                new_corners = uld.getNewCorners(package, corner)
+                corners[uld.id].remove(corner)
+                corners[uld.id].extend(new_corners)
+                if package.priority == "Priority":
+                    self.priorityDone+=1
+            
 
 
