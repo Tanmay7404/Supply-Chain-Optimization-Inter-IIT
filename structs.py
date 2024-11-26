@@ -1,4 +1,7 @@
+import math
 
+def calculateEuclideanDistance(self, point):
+        return math.sqrt(point[0] ** 2 + point[1] ** 2 + point[2] ** 2)
 
 
 #Always LWH is default unless specified otherwise
@@ -104,6 +107,10 @@ class ULD:
         valid = False
         if (self.weightLeft() < currPackage.weight) : 
             return valid
+        
+        bestRot = -1;
+        minEucDist = 10000;
+
         for rotation in rotations:
             currPackage.rotation = rotation
             dimensions = currPackage.getDimensions()
@@ -113,22 +120,30 @@ class ULD:
                 self.height < pivot[2] + dimensions[2] or
                 pivot[0] < 0 or pivot[1] < 0 or pivot[2] < 0
             ): continue
+            else : 
+                if(minEucDist>calculateEuclideanDistance(self,[pivot[0] + dimensions[0],pivot[1] + dimensions[1], pivot[2] + dimensions[2]])) :
+                    bestRot = rotation
+                    continue
 
+        if(bestRot != -1) : 
             valid = True
+            currPackage.rotation = bestRot
 
-            for package in self.packages:
-                if package.isIntersecting(currPackage):
-                    valid = False
-                    break
+        valid = True
 
-            if valid:
-                #check for stability?
-                #update uld criteria if needed for solver
-                currPackage.ULD = self.id
-                #do we need to deepcopy this?
-                self.packages.append(currPackage)
-                if(currPackage.priority == "Priority"): self.isPriority = True
-                return valid
+        for package in self.packages:
+            if package.isIntersecting(currPackage):
+                valid = False
+                break
+
+        if valid:
+            #check for stability?
+            #update uld criteria if needed for solver
+            currPackage.ULD = self.id
+            #do we need to deepcopy this?
+            self.packages.append(currPackage)
+            if(currPackage.priority == "Priority"): self.isPriority = True
+            return valid
             
         currPackage.position = prevPosition
         return valid
