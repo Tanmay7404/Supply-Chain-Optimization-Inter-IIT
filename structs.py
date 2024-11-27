@@ -100,6 +100,9 @@ class ULD:
     
     def getVolume(self):
         return self.length*self.width*self.height
+    
+    def getWeight(self):
+        return self.weight_limit
 
     def addBox(self, currPackage, pivot, rotations = Rotation.ALL):
         prevPosition = currPackage.position

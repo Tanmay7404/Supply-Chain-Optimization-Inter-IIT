@@ -29,11 +29,15 @@ class Solver:
         packages.sort(key=lambda x: x.getVolume(), reverse=True)
 
     def sortULDs(self):
-        self.ulds.sort(key=lambda x: x.getVolume(), reverse=True)
+        self.ulds.sort(key=lambda x: x.getWeight(), reverse=True)
 
     # Select packages to even be considered for packing
     def selectPackages(self):
-        self.economy.sort(key=lambda x: (x.cost / (x.getVolume() + x.weight)), reverse=True)
+        #
+        k=3
+        k2=2
+        
+        self.economy.sort(key=lambda x: (x.cost / ((x.getVolume())**k + x.weight**k2)), reverse=True)
         economyTaking = self.economy[:150]  # Limit number of economy packages
         self.takenPackages = self.priority + economyTaking
 
