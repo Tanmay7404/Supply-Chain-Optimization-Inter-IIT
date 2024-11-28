@@ -56,6 +56,11 @@ def metrics(ulds):
     print(str(freeWeight/totalWeight*100)+"% free uld weight")   
     cost = 0
 
+
+
+    for uld in ulds:
+        uld.checkStability()
+
     packagesTotal = 0
     packagesPriority = 0
     packagesEconomy = 0

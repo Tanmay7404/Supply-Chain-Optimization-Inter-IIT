@@ -1,6 +1,10 @@
 import math
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-def calculateEuclideanDistance(self, point):
+def calculateEuclideanDistance(point):
         return math.sqrt(point[0] ** 2 + point[1] ** 2 + point[2] ** 2)
 
 
@@ -20,7 +24,32 @@ def isIntersecting(package1,package2,x,y):
 
     return ix < (d1[x]+d2[x])/2 and iy < (d1[y]+d2[y])/2
 
+def getOverlap(rect1,rect2):
+    x1 = max(rect1[0],rect2[0])
+    x2 = min(rect1[2],rect2[2])
+    y1 = max(rect1[1],rect2[1])
+    y2 = min(rect1[3],rect2[3])
+    return max(0,x2-x1)*max(0,y2-y1)
 
+def getCube(limits = None):
+    '''get the vertices, edges, and faces of a cuboid defined by its limits
+
+    limits = np.array([[x_min, x_max],
+                       [y_min, y_max],
+                       [z_min, z_max]])
+    '''   
+    if limits is None:
+        limits = np.array([[0, 1], [0, 1], [0, 1]])
+    v = np.array([[x, y, z] for x in limits[0] for y in limits[1] for z in limits[2]])
+    e = np.array([[0, 1], [1, 3], [3, 2], [2, 0],
+                  [4, 5], [5, 7], [7, 6], [6, 4],
+                  [0, 4], [1, 5], [2, 6], [3, 7]])
+    f = np.array([[0, 1, 3, 2], [4, 5, 7, 6],
+                  [0, 1, 5, 4], [2, 3, 7, 6],
+                  [0, 2, 6, 4], [1, 3  , 7, 5]])
+    
+
+    return v, e, f
 
 class Rotation:
     LWH = 0
@@ -37,7 +66,7 @@ class Axis:
     WIDTH = 1
     HEIGHT = 2
 
-    ALL = [LENGTH, WIDTH, HEIGHT]
+    ALL = [HEIGHT, WIDTH, LENGTH]
 
 class Package:
 
@@ -54,6 +83,7 @@ class Package:
         self.cost = int(cost)
         self.rotation = Rotation.LWH
         self.pqPriority = 0
+        self.stable = True
 
     def getMaxBase(self):
         #already sorted
@@ -106,56 +136,63 @@ class ULD:
 
     def addBox(self, currPackage, pivot, rotations = Rotation.ALL):
         prevPosition = currPackage.position
-        currPackage.position = pivot
-        valid = False
-        if (self.weightLeft() < currPackage.weight) : 
-            return valid
-        
-        
+        currPackage.position = list(pivot)
+        bestRotation = None
+        minEucdist = float('inf')
+
+        # Check weight limits
+        if self.weightLeft() < currPackage.weight:
+            currPackage.position = prevPosition
+            return False
 
         for rotation in rotations:
             currPackage.rotation = rotation
             dimensions = currPackage.getDimensions()
+
+            # Check boundary limits
             if (
-                self.length < pivot[0] + dimensions[0] or
-                self.width < pivot[1] + dimensions[1] or
-                self.height < pivot[2] + dimensions[2] or
-                pivot[0] < 0 or pivot[1] < 0 or pivot[2] < 0
-            ): continue
-            # else : 
-            #     if(minEucDist>calculateEuclideanDistance(self,[pivot[0] + dimensions[0],pivot[1] + dimensions[1], pivot[2] + dimensions[2]])) :
-            #         bestRot = rotation
-            #         continue
+                pivot[0] + dimensions[0] > self.length or
+                pivot[1] + dimensions[1] > self.width or
+                pivot[2] + dimensions[2] > self.height
+            ):
+                continue
 
-        # if(bestRot != -1) : 
-        #     valid = True
-        #     currPackage.rotation = bestRot
+            # Check for intersections
+            if any(package.isIntersecting(currPackage) for package in self.packages):
+                continue
 
-            valid = True
+            # # Calculate Euclidean distance for the farthest corner
+            # farthest_point = [
+            #     pivot[0] + dimensions[0],
+            #     pivot[1] + dimensions[1],
+            #     pivot[2] + dimensions[2],
+            # ]
+            # dist = calculateEuclideanDistance(farthest_point)
 
-            for package in self.packages:
-                if package.isIntersecting(currPackage):
-                    valid = False
-                    break
+            # if dist < minEucdist:
+            #     minEucdist = dist
+            #     bestRotation = rotation
 
-            if valid:
-                #check for stability?
-                #update uld criteria if needed for solver
-                currPackage.ULD = self.id
-                #do we need to deepcopy this?
-                self.packages.append(currPackage)
-                if(currPackage.priority == "Priority"): self.isPriority = True
-                return valid
+            # check for stability?
+            for axis in Axis.ALL:
+                if self.project(currPackage,axis) != -1:
+                    currPackage.position[axis] = self.project(currPackage,axis)
+    
+            #update uld criteria if needed for solver
+            currPackage.ULD = self.id
+            self.packages.append(currPackage)
+            if(currPackage.priority == "Priority"): self.isPriority = True
+            return True
                 
         currPackage.position = prevPosition
-        return valid
+        return False
     
-    def getNewCorners(self,package,corner):
+    def getNewCorners(self,package):
         # print(corner, package.getDimensions())
     
         extreme_points = set()
         # print(corner)
-        [x, y, z] = corner
+        [x, y, z] = package.position
         [dx, dy, dz] = package.getDimensions()
         L = self.length
         W = self.width
@@ -223,6 +260,98 @@ class ULD:
         extreme_points.add((x,y,z+dz))
         
         return extreme_points
+
+    def checkStabilityPackage(self, package, minOverlapReq = 0.5):
+        packageDimensions = package.getDimensions()
+        packageRectangle = [package.position[0],package.position[1],package.position[0]+packageDimensions[0],package.position[1]+packageDimensions[1]]
+        packageBase = package.position[2]
+        packageBaseArea = packageDimensions[0]*packageDimensions[1]
+        maxOverlap = 0
+        for otherPackage in self.packages:
+            if package == otherPackage: continue
+            otherPackageDimensions = otherPackage.getDimensions()
+            if packageBase != otherPackage.position[2] + otherPackageDimensions[2]: continue
+            otherPackageRectangle = [otherPackage.position[0],otherPackage.position[1],otherPackage.position[0]+otherPackageDimensions[0],otherPackage.position[1]+otherPackageDimensions[1]]
+            maxOverlap += getOverlap(packageRectangle,otherPackageRectangle)
+        
+        maxOverlap = maxOverlap/packageBaseArea
+        # print("Package ",package.id," has overlap ",maxOverlap)
+        if package.position[2] == 0:
+            package.stable = True
+            return True
+        if maxOverlap == 0:
+            # print("Package ",package.id," is flying")
+            # print("Coordinates ",package.position)
+            package.stable = -1
+            return False
+        if (
+            package.position[0] == 0 or
+            package.position[1] == 0 or
+            package.position[0] + package.getDimensions()[0] == self.length or
+            package.position[1] + package.getDimensions()[1] == self.width
+        ):
+            package.stable = True
+            return True
+        if maxOverlap < minOverlapReq:
+            # print("Package ",package.id," is unstable")
+            package.stable = False
+            return False
+        package.stable = True
+        return True
+    
+    def project(self, package, axis = Axis.HEIGHT):
+        maxxx = -1
+        axis1 = (axis+1)%3
+        axis2 = (axis+2)%3
+        packageDimensions = package.getDimensions()
+        packageRectangle = [package.position[axis1],package.position[axis2],package.position[axis1]+packageDimensions[axis1],package.position[axis2]+packageDimensions[axis2]]
+        for otherPackage in self.packages:
+            otherPackageDimensions = otherPackage.getDimensions()
+            otherPackageRectangle = [otherPackage.position[axis1],otherPackage.position[axis2],otherPackage.position[axis1]+otherPackageDimensions[axis1],otherPackage.position[axis2]+otherPackageDimensions[axis2]]
+            if (package.position[axis] >= otherPackage.position[axis]+ otherPackageDimensions[axis]):
+                if (getOverlap(packageRectangle,otherPackageRectangle) > 0):
+                    maxxx = max(maxxx,otherPackage.position[axis]+otherPackageDimensions[axis])
+        return maxxx    
+
+    def checkStability(self, minOverlapReq = 0.5, unstableAllowed = 0):    
+        numUnstable = 0
+        totalPackages = len(self.packages)
+
+        for package in self.packages:
+            for otherPackage in self.packages:
+                if package == otherPackage: continue
+                if package.isIntersecting(otherPackage):
+                    print("Package ",package.id," is intersecting with ",otherPackage.id)
+                    
+
+        for package in self.packages:
+            if not self.checkStabilityPackage(package, minOverlapReq):
+                numUnstable+=1
+        print("ULD ",self.id," has ",numUnstable,"out of ",totalPackages," unstable packages")
+        return (numUnstable <= unstableAllowed)
+
+    def plotULD(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_xlim([0,self.length])
+        ax.set_ylim([0,self.width])
+        ax.set_zlim([0,self.height])
+        for package in self.packages:
+            [x,y,z] = package.position
+            [dx,dy,dz] = package.getDimensions()
+            v,e,f = getCube(np.array([[x,x+dx],[y,y+dy],[z,z+dz]]))
+            ax.plot(*v.T, marker='o', color='k', ls='')
+            for i, j in e:
+                ax.plot(*v[[i, j], :].T, color='r', ls='-')
+            for i in f:
+                if package.stable == -1:
+                    ax.add_collection3d(Poly3DCollection([v[i]], facecolors='red', linewidths=1, edgecolors='r', alpha=.25))
+                elif package.stable:
+                    ax.add_collection3d(Poly3DCollection([v[i]], facecolors='cyan', linewidths=1, edgecolors='r', alpha=.25))
+                else:
+                    ax.add_collection3d(Poly3DCollection([v[i] for i in f], facecolors='green', linewidths=1, edgecolors='r', alpha=.25))
+        plt.show()
+
 
 
     def clearBin(self):

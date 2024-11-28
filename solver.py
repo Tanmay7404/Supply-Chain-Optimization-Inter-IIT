@@ -22,6 +22,7 @@ class Solver:
 
     # Sort all taken packages
     def sortPackages(self, packages):
+        k = 3
         packages.sort(key=lambda x: (x.cost, x.getVolume()), reverse=True)
 
     # Sort the intra-ULD packages
@@ -36,9 +37,10 @@ class Solver:
         #
         k=3
         k2=2
+        num = 150
         
         self.economy.sort(key=lambda x: (x.cost / ((x.getVolume())**k + x.weight**k2)), reverse=True)
-        economyTaking = self.economy[:150]  # Limit number of economy packages
+        economyTaking = self.economy[:num]  # Limit number of economy packages
         self.takenPackages = self.priority + economyTaking
 
     # Fit the packages into the ULD
@@ -57,7 +59,7 @@ class Solver:
                     if uld.addBox(package, corner):
                         # Remove this corner and add the other 7 new corners
                         corners.remove(corner)
-                        new_corners = uld.getNewCorners(package, corner)
+                        new_corners = uld.getNewCorners(package)
                         corners.extend(new_corners)
 
                         # Re-sort corners by Euclidean distance for the next iteration
