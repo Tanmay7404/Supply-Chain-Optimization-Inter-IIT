@@ -20,10 +20,10 @@ class Solver:
     def calculateEuclideanDistance(self, point):
         return math.sqrt(point[0] ** 2 + point[1] ** 2 + point[2] ** 2)
 
-    # Sort all taken packages
+      # Sort all taken packages
     def sortPackages(self, packages):
-        k = 3
-        packages.sort(key=lambda x: (x.cost, x.getVolume()), reverse=True)
+        k = 2
+        packages.sort(key=lambda x: (x.cost, x.getVolume()**k), reverse=True)
 
     # Sort the intra-ULD packages
     def sortULDPackages(self, packages):
@@ -35,8 +35,8 @@ class Solver:
     # Select packages to even be considered for packing
     def selectPackages(self):
         #
-        k=3
-        k2=2
+        k=4
+        k2=3
         num = 150
         
         self.economy.sort(key=lambda x: (x.cost / ((x.getVolume())**k + x.weight**k2)), reverse=True)
