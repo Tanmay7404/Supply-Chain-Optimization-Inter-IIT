@@ -7,7 +7,6 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 def calculateEuclideanDistance(point):
         return math.sqrt(point[0] ** 2 + point[1] ** 2 + point[2] ** 2)
 
-
 #Always LWH is default unless specified otherwise
 
 def isIntersecting(package1,package2,x,y):
@@ -84,6 +83,7 @@ class Package:
         self.rotation = Rotation.LWH
         self.pqPriority = 0
         self.stable = True
+        self.pushLim = [-1,-1,-1]
 
     def getMaxBase(self):
         #already sorted
@@ -156,12 +156,19 @@ class ULD:
                 pivot[2] + dimensions[2] > self.height
             ):
                 continue
-
-            # Check for intersections
+	    # Check for intersections
             if any(package.isIntersecting(currPackage) for package in self.packages):
                 continue
+            # else : 
+            #     if(minEucDist>calculateEuclideanDistance(self,[pivot[0] + dimensions[0],pivot[1] + dimensions[1], pivot[2] + dimensions[2]])) :
+            #         bestRot = rotation
+            #         continue
 
-            # # Calculate Euclidean distance for the farthest corner
+        # if(bestRot != -1) : 
+        #     valid = True
+        #     currPackage.rotation = bestRot
+        
+        # # Calculate Euclidean distance for the farthest corner
             # farthest_point = [
             #     pivot[0] + dimensions[0],
             #     pivot[1] + dimensions[1],
@@ -177,16 +184,71 @@ class ULD:
             for axis in Axis.ALL:
                 if self.project(currPackage,axis) != -1:
                     currPackage.position[axis] = self.project(currPackage,axis)
-    
+
+            
+            #check for stability?
             #update uld criteria if needed for solver
             currPackage.ULD = self.id
+            #do we need to deepcopy this?
             self.packages.append(currPackage)
             if(currPackage.priority == "Priority"): self.isPriority = True
             return True
-                
+            
         currPackage.position = prevPosition
         return False
     
+    def pushAddBox(self, currPackage, pivot, rotations = Rotation.ALL):
+        prevPosition = currPackage.position
+        currPackage.position = list(pivot)
+        valid = False
+        if (self.weightLeft() < currPackage.weight) : 
+            return valid
+        
+        
+
+        for rotation in rotations:
+            currPackage.rotation = rotation
+            dimensions = currPackage.getDimensions()
+            if (
+                self.length < pivot[0] + dimensions[0] or
+                self.width < pivot[1] + dimensions[1] or
+                self.height < pivot[2] + dimensions[2] or
+                pivot[0] < 0 or pivot[1] < 0 or pivot[2] < 0
+            ): continue
+           
+            valid = True
+
+            for pck in self.packages:
+                
+                pos = pck.position.copy()
+                if(pck.position[0]>=pivot[0]):
+                    pck.position[0] = pck.position[0] + pck.pushLim[0]
+                if(pck.position[1]>=pivot[1]):
+                    pck.position[1] = pck.position[1] + pck.pushLim[1]
+                if(pck.position[2]>=pivot[2]):
+                    pck.position[2] = pck.position[2] + pck.pushLim[2]
+                    
+                if pck.isIntersecting(currPackage):
+                    pck.position = pos
+                    valid = False
+                    break
+                pck.position = pos
+
+            if valid:
+                self.pushOut(pivot[0],pivot[1],pivot[2])
+                currPackage.ULD = self.id
+                #do we need to deepcopy this?
+                self.packages.append(currPackage)
+                self.normalize()
+                # self.plotULD()
+
+                if(currPackage.priority == "Priority"): self.isPriority = True
+                return valid                           
+                
+        currPackage.position = prevPosition
+        return valid
+    
+
     def getNewCorners(self,package):
         # print(corner, package.getDimensions())
     
@@ -203,12 +265,15 @@ class ULD:
         def project_along_axis(fixed_axis, variable_axis1, variable_axis2,x1,y1,z1):
             
             if fixed_axis == "x":
+                fd = 0
                 fixed, dim, limit = x1, dx, L
                 var1, var2 = y1, z1
             elif fixed_axis == "y":
+                fd = 1
                 fixed, dim, limit = y1, dy, W
                 var1, var2 = x1, z1
             elif fixed_axis == "z":
+                fd = 2
                 fixed, dim, limit = z1, dz, H
                 var1, var2 = x1, y1
             else:
@@ -232,6 +297,24 @@ class ULD:
                 pkg_min[variable_axis2] <= var2 < pkg_max[variable_axis2]:
                     if pkg_max[fixed_axis] <= fixed:
                         max_extent = max(max_extent, pkg_max[fixed_axis])  # Blocked by package
+            
+            # ep = [x1,y1,z1]
+            # for pkg in self.packages:
+                
+            #     px, py, pz = pkg.position
+            #     pdx,pdy,pdz = pkg.getDimensions()
+
+            #     # Get the package boundaries
+            #     pkg_min = {"x": px, "y": py, "z": pz}
+            #     pkg_max = {"x": px + pdx, "y": py + pdy, "z": pz + pdz}
+
+            #     # Check if the package intersects the projection plane
+                
+            #     if (pkg_max[fixed_axis] <= fixed) and (pkg_max[fixed_axis] > max_extent):
+            #         kk_temp = ep[fd]
+            #         ep[fd] = pkg_max[fixed_axis]
+            #         extreme_points.add((ep[0],ep[1],ep[2]))
+            #         ep[fd] = kk_temp
 
             # Return the maximum valid extent
             return max_extent
@@ -375,3 +458,112 @@ class ULD:
             z+=com[2]*weight
         totalWeight = sum([package.weight for package in self.packages])
         return [x/totalWeight,y/totalWeight,z/totalWeight]
+    
+        
+    
+    def calculatePushLimit(self):
+        for i in range(3):
+            sortedPos = []
+            for j in self.packages:
+                sortedPos.append([j.position[i],1,j])
+                dim = j.getDimensions()[i]
+                sortedPos.append([j.position[i]+dim,0,j])
+
+            sortedPos.sort(key=lambda x: (x[0], x[1]), reverse=True)
+            
+            x0 = self.length
+            if(i==1):
+                x0 = self.width
+            elif(i==2):
+                x0 = self.height
+            for j in sortedPos:
+                if(j[1]==1):
+                    x0 = min(x0,j[0] + j[2].pushLim[i])
+                else:
+                    j[2].pushLim[i] = x0 - j[0]
+        
+    
+    def pushOut(self,x,y,z):
+        for i in self.packages:
+            if(i.position[0]>=x):
+                i.position[0]+= i.pushLim[0]
+            if(i.position[1]>=y):
+                i.position[1]+= i.pushLim[1]
+            if(i.position[2]>=z):
+                i.position[2]+= i.pushLim[2]
+    
+        
+    
+
+    def normalize(self):
+        packages = self.packages
+        moved = True
+
+        while moved:
+            moved = False
+
+            for axis in range(3):
+        
+                packages.sort(key=lambda package: package.position[axis])
+
+                for i, package in enumerate(packages):
+                    # Find the minimum position the packet can move to along the current axis
+                    min_position = 0
+
+                    for j in range(i):
+                        op = packages[j].position
+                        pp = package.position
+                        od = packages[j].getDimensions()
+                        pd = package.getDimensions()
+
+                        # Ensure no overlap: check the other two axes
+                        a1 = (axis+1)%3
+                        a2 = (axis+2)%3
+                        if(((pp[a1]+pd[a1]<=op[a1]) or (op[a1]+od[a1]<=pp[a1])) and ((pp[a2]+pd[a2]<=op[a2]) or (op[a2]+od[a2]<=pp[a2]))):
+                            continue
+                            # No overlap, update minimum position if needed
+                        min_position = max(min_position, op[axis] + od[axis])
+
+                    # Move the packet if possible
+                    if package.position[axis] > min_position:
+                        package.position[axis] = min_position
+                        moved = True
+
+    def recalculate_corners(self):
+        corners = []
+        corners.append((0,0,0))
+        for i in self.packages:
+            corners.extend(self.getNewCorners(i))
+
+        return corners
+            
+
+    
+    def inflate_and_replace(self,pck,rep):
+
+        if(pck.priority != rep.priority):
+            return False
+        if(pck.cost < rep.cost):
+            return False
+        if(pck.getVolume() < rep.getVolume()):
+            return False
+        
+        currpack = self.packages.copy()
+
+        self.packages.remove(rep)
+
+        if(self.pushAddBox(pck,rep.position)):
+            rep.ULD = -1
+            rep.pos = [-1,-1,-1]
+            rep.pushLim = [-1,-1,-1]
+            self.packages.remove(pck)
+            for i,p in enumerate(currpack):
+                if(p == rep):
+                    currpack[i] = pck
+                    break
+            self.packages = currpack
+            print("YAYY")
+            return True
+        
+        self.packages = currpack
+        return False

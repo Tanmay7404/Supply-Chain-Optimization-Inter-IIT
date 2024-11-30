@@ -1,6 +1,7 @@
 from structs import ULD,Package
 from solver import Solver
 import csv
+from solver2_withSpaceDefrag import Solver2
 
 
 
@@ -96,13 +97,15 @@ def generateOutput():
     outputCSV = csv.writer(f)
     packages.sort(key=lambda x: (str(x.ULD),list(x.position)))
     for package in packages:
-        outputCSV.writerow([package.id,package.ULD,package.position,package.getDimensions()])
+        outputCSV.writerow([package.id,package.ULD,package.position,package.getDimensions(),package.weight,package.cost,package.rotation])
 
 getPackages()
 getULD()
 
 
-solver = Solver(packages,ulds)
-solver.solve()
+# solver = Solver(packages,ulds)
+# solver.solve()
+solver2 = Solver2(packages,ulds)
+solver2.solve()
 metrics(ulds)
 generateOutput()
