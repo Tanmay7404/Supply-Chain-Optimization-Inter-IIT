@@ -1,7 +1,6 @@
-from structs import ULD,Package
-from solver import Solver
+from heuristics.structs import ULD,Package
 import csv
-from solver2_withSpaceDefrag import Solver2
+from heuristics.solver2_withSpaceDefrag import Solver2
 
 
 
@@ -103,8 +102,6 @@ getPackages()
 getULD()
 
 
-# solver = Solver(packages,ulds)
-# solver.solve()
 solver2 = Solver2(packages,ulds)
 solver2.solve()
 metrics(ulds)
