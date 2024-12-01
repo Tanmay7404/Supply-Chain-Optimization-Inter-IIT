@@ -1,6 +1,6 @@
 import math
 
-from heuristics.structs import Axis
+from utils.structs import Axis
 
 class Solver2:
     def __init__(self, packages, ulds):
@@ -183,7 +183,7 @@ class Solver2:
 
 
         # self.ulds[0].plotULD()
-        self.ulds[1].plotULD()
+        # self.ulds[1].plotULD()
         # self.ulds[2].plotULD()
         # self.ulds[3].plotULD()
         # self.ulds[4].plotULD()

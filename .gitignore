@@ -1,2 +1,4 @@
 
 /__pycache__
+/heuristics/__pycache__
+*.pyc

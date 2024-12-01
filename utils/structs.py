@@ -101,6 +101,7 @@ class Package:
 
     def getDimensions(self):
         dim = []
+        
         if self.rotation == Rotation.LWH: dim = [self.length,self.width,self.height]
         if self.rotation == Rotation.WLH: dim = [self.width,self.length,self.height]
         if self.rotation == Rotation.HLW: dim = [self.height,self.length,self.width]
@@ -567,3 +568,20 @@ class ULD:
         
         self.packages = currpack
         return False
+
+
+
+class CartonPackage:
+    
+    def __init__(self, id, uldid, position, dimensions, weight, cost, rotation):
+        self.id = id
+        self.ULD = uldid
+        self.position = position
+        self.dimensions = dimensions
+        self.weight = weight
+        self.cost = cost
+        self.rotation = rotation
+        self.priority = 1 if uldid == "priority" else 0
+    
+    def getDimensions(self):
+        return self.dimensions

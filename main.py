@@ -1,9 +1,13 @@
-from heuristics.structs import ULD,Package
 import csv
 from heuristics.solver2_withSpaceDefrag import Solver2
-
-
-
+from utils.inputGetter import getPackages, getULD
+from utils.cartons import cartons
+from LPP.carton_to_package import sol_to_package
+from utils.containers import containers
+from LPP.model import all_swaps as solver
+from LPP.package_to_carton import get_from_greedy
+from binsearch.binsearch import binsearch
+from utils.lpp_utils import are_cubes_intersecting, is_box_inside_container, plot
 
 
 
@@ -13,82 +17,6 @@ k = 5000
 ulds = []
 packages = []
 
-def getPackages():
-    f = open("package.csv", mode="r")
-    packageCSV = csv.reader(f)
-    for p in packageCSV:
-        if p[5] == "Economy":
-            package = Package(p[1],p[2],p[3],p[4],p[0],p[5],p[6])
-            packages.append(package)
-        else:
-            package = Package(p[1],p[2],p[3],p[4],p[0],p[5])
-            packages.append(package)
-
-def getULD():
-    f = open("ULD.csv", mode="r")
-    uldCSV = csv.reader(f)
-    for u in uldCSV:
-        uld = ULD(u[1],u[2],u[3],u[4],u[0])
-        ulds.append(uld)
-
-def metrics(ulds):
-    freeSpace = 0
-    totalSpace = 0
-    freeWeight = 0
-    totalWeight = 0
-    for uld in ulds:
-        uldfreeSpace = uld.getVolume()
-        uldtotalSpace = uld.getVolume()
-        totalSpace+=uld.getVolume()
-        freeSpace+=uld.getVolume()
-        totalWeight+=uld.weight_limit
-        freeWeight+=uld.weight_limit
-        uldfreeWeight = uld.weight_limit
-        uldtotalWeight = uld.weight_limit
-        for package in uld.packages:
-            uldfreeSpace-=package.getVolume()
-            freeSpace-=package.getVolume()
-            uldfreeWeight-=package.weight
-            freeWeight-=package.weight
-        print(str(uldfreeSpace/uldtotalSpace*100)+"% free space in uld ",uld.id)
-        print(str(uldfreeWeight/uldtotalWeight*100)+"% free weight in uld ",uld.id)
-    print(str(freeSpace/totalSpace*100)+"% free uld space") 
-    print(str(freeWeight/totalWeight*100)+"% free uld weight")   
-    cost = 0
-
-
-
-    for uld in ulds:
-        uld.checkStability()
-
-    packagesTotal = 0
-    packagesPriority = 0
-    packagesEconomy = 0
-    packagesTotalTaken = 0
-    packagesPriorityTaken = 0
-    packagesEconomyTaken = 0
-
-    for package in packages:
-        packagesTotal+=1
-        if package.ULD != -1: packagesTotalTaken+=1
-        if package.priority == "Priority":
-            packagesPriority+=1
-            if package.ULD != -1: packagesPriorityTaken+=1
-        else:
-            packagesEconomy+=1
-            if package.ULD != -1: packagesEconomyTaken+=1
-
-    print("{0} out of {1} packages taken".format(packagesTotalTaken,packagesTotal))
-    print("{0} out of {1} priority packages taken".format(packagesPriorityTaken,packagesPriority))
-    print("{0} out of {1} economy packages taken".format(packagesEconomyTaken,packagesEconomy))
-
-    for package in packages:
-        if package.ULD == -1: cost+=package.cost
-    print("Cost without accounting for priority uld (k) = ", cost)
-    for uld in ulds:
-        if uld.isPriority: cost+=k
-    
-    print(" Total Cost = ", cost)
 
 
 def generateOutput():
@@ -96,13 +24,39 @@ def generateOutput():
     outputCSV = csv.writer(f)
     packages.sort(key=lambda x: (str(x.ULD),list(x.position)))
     for package in packages:
-        outputCSV.writerow([package.id,package.ULD,package.position,package.getDimensions(),package.weight,package.cost,package.rotation])
+        outputCSV.writerow([package.id,package.ULD,package.position,package.getDimensions(),package.weight,package.cost,package.rotation,package.priority])
 
-getPackages()
-getULD()
-
+getPackages(packages)
+getULD(ulds)
 
 solver2 = Solver2(packages,ulds)
 solver2.solve()
-metrics(ulds)
+
 generateOutput()
+cartons = cartons()
+containers = containers()
+
+
+binsearchSolution = binsearch(packageArray=packages, uldArray=ulds)
+newPackages = sol_to_package(binsearchSolution)
+
+
+init = get_from_greedy(packageArray=newPackages)
+solution = solver(cartons=cartons, containers=containers, init=init)
+
+for i in range(len(solution)):
+    for j in range(i + 1, len(solution)):
+        if (solution[i]["container_id"] != solution[j]["container_id"]):
+            continue
+        if (solution[i]["container_id"] == -1):
+            continue
+        if are_cubes_intersecting(solution[i], solution[j]):
+            print("Cubes intersecting:", solution[i]["carton_id"], solution[j]["carton_id"])
+for i in range(len(solution)):
+    for j in range(len(containers)):
+        if solution[i]['container_id'] == containers[j]['id']:
+            if is_box_inside_container(solution[i], containers[j]) == 0:
+                print(f"out of range ! carton : {solution[i]['carton_id']}")
+
+plot(solution)
+print(solution)
