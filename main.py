@@ -19,7 +19,7 @@ packages = []
 
 
 
-def generateOutput():
+def generateOutput(packages):
     f = open("output.csv", mode="w")
     outputCSV = csv.writer(f)
     packages.sort(key=lambda x: (str(x.ULD),list(x.position)))
@@ -32,7 +32,7 @@ getULD(ulds)
 solver2 = Solver2(packages,ulds)
 solver2.solve()
 
-generateOutput()
+generateOutput(packages)
 cartons = cartons()
 containers = containers()
 
@@ -41,8 +41,12 @@ binsearchSolution = binsearch(packageArray=packages, uldArray=ulds)
 newPackages = sol_to_package(binsearchSolution)
 
 
+generateOutput(newPackages)
+
 init = get_from_greedy(packageArray=newPackages)
 solution = solver(cartons=cartons, containers=containers, init=init)
+
+generateOutput(sol_to_package(solution))
 
 for i in range(len(solution)):
     for j in range(i + 1, len(solution)):
