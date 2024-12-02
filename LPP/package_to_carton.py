@@ -189,25 +189,28 @@ def make_solution(package):
     return carton
 
 
-def get_specific_from_greedy(filename, container_id):
+def get_specific_from_greedy( container_id, filename= None, packageArray = None):
 
     import csv
-    from structs import CartonPackage as Package
+    from utils.structs import CartonPackage as Package
     import ast
     packages = []
     rem_packages = []
     specific_packages = []
     ULDS = ["U1", "U2", "U3", "U4", "U5", "U6"]
-    with open(filename, mode='r') as file:
-        csv_reader = csv.reader(file)
-        for row in csv_reader:
-            if row:
-                f = 1
-            else:
-                continue
-            package = Package(row[0], row[1], ast.literal_eval(row[2]), ast.literal_eval(row[3]), row[4], row[5],
-                              row[6])
-            packages.append(package)
+    if filename is None:
+        packages = packageArray
+    else:
+        with open(filename, mode='r') as file:
+            csv_reader = csv.reader(file)
+            for row in csv_reader:
+                if row:
+                    f = 1
+                else:
+                    continue
+                package = Package(row[0], row[1], ast.literal_eval(row[2]), ast.literal_eval(row[3]), row[4], row[5],
+                                row[6])
+                packages.append(package)
 
     initialsij = {}
     pos = []

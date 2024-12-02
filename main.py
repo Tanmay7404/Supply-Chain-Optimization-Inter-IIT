@@ -5,9 +5,11 @@ from utils.cartons import cartons
 from LPP.carton_to_package import sol_to_package
 from utils.containers import containers
 from LPP.model import all_swaps as solver
-from LPP.package_to_carton import get_from_greedy
+from LPP.package_to_carton import get_from_greedy, get_specific_from_greedy
 from binsearch.binsearch import binsearch
 from utils.lpp_utils import are_cubes_intersecting, is_box_inside_container, plot
+from utils.metrics import metrics, uldPlot
+from utils.updatePackages import updatePackages
 
 
 
@@ -41,26 +43,26 @@ binsearchSolution = binsearch(packageArray=packages, uldArray=ulds)
 newPackages = sol_to_package(binsearchSolution)
 
 
+
+
+updatePackages(packages,newPackages,ulds)  
 generateOutput(newPackages)
 
-init = get_from_greedy(packageArray=newPackages)
-solution = solver(cartons=cartons, containers=containers, init=init)
+metrics(packages,ulds,k)
+uldPlot(ulds)
+
+init,cartons,assigned_solutions = get_specific_from_greedy(ulds[-1].id,packageArray=packages)
+solution = solver(cartons=cartons, containers=containers, init=init, assigned_solutions=assigned_solutions)
 
 generateOutput(sol_to_package(solution))
+finalsol = sol_to_package(solution)
 
-for i in range(len(solution)):
-    for j in range(i + 1, len(solution)):
-        if (solution[i]["container_id"] != solution[j]["container_id"]):
-            continue
-        if (solution[i]["container_id"] == -1):
-            continue
-        if are_cubes_intersecting(solution[i], solution[j]):
-            print("Cubes intersecting:", solution[i]["carton_id"], solution[j]["carton_id"])
-for i in range(len(solution)):
-    for j in range(len(containers)):
-        if solution[i]['container_id'] == containers[j]['id']:
-            if is_box_inside_container(solution[i], containers[j]) == 0:
-                print(f"out of range ! carton : {solution[i]['carton_id']}")
 
-plot(solution)
-print(solution)
+updatePackages(packages,finalsol,ulds)
+    
+
+
+generateOutput(packages)
+metrics(packages,ulds,k)
+uldPlot(ulds)
+# package array plot here

@@ -4,7 +4,6 @@ from utils.cartons import cartons
 from utils.containers import containers
 from LPP.package_to_carton import get_from_greedy, get_specific_from_greedy
 
-specific_container = 'U3'
 
 # containers = containers_specific(specific_container)
 # init, cartons, assigned_solutions = get_specific_from_greedy(filename, specific_container)
@@ -13,10 +12,10 @@ specific_container = 'U3'
 # print(cartons)
 # print(assigned_solutions)
 
-def all_swaps(cartons, containers, init):
+def all_swaps(cartons, containers, init, assigned_solutions, timeout = 600):
     model = gp.Model("3D_Container_Loading_with_Relative_Positioning")
     # model.Params.LogToConsole = 1  # Show optimization logs
-
+    model.setParam('TimeLimit', timeout)  # Set time limit to 10 minutes
     # Define constants
     M = 100000  # Large constant for "big-M" constraints
 
@@ -204,10 +203,31 @@ def all_swaps(cartons, containers, init):
                                 orientation[carton['id']]["wz"].X + carton['height'] * orientation[carton['id']][
                                     "hz"].X,
                         "weight": carton['weight'],
-                        "cost": carton['cost'],
-                        "priority": carton['priority']
+                        "cost": carton['cost']
                     })
                     # Print aik and bik variables
+        for sol in assigned_solutions:
+            solution.append(sol)
+        for carton in cartons:
+            if sum(sij[(carton['id'], container['id'])].X for container in containers) == 0 :
+                solution.append({
+                        "carton_id": carton['id'],
+                        "container_id": -1,
+                        "x": -1,
+                        "y": -1,
+                        "z": -1,
+                        "DimX": carton['length'] * orientation[carton['id']]["lx"].X + carton['width'] *
+                                orientation[carton['id']]["wx"].X + carton['height'] * orientation[carton['id']][
+                                    "hx"].X,
+                        "DimY": carton['length'] * orientation[carton['id']]["ly"].X + carton['width'] *
+                                orientation[carton['id']]["wy"].X + carton['height'] * orientation[carton['id']][
+                                    "hy"].X,
+                        "DimZ": carton['length'] * orientation[carton['id']]["lz"].X + carton['width'] *
+                                orientation[carton['id']]["wz"].X + carton['height'] * orientation[carton['id']][
+                                    "hz"].X,
+                        "weight": carton['weight'],
+                        "cost": carton['cost']
+                    })
         return solution
     else:
         print("No feasible solution found.")

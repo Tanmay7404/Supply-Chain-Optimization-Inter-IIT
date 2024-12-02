@@ -84,6 +84,7 @@ class Package:
         self.pqPriority = 0
         self.stable = True
         self.pushLim = [-1,-1,-1]
+        self.dimensions = [self.length,self.width,self.height]
 
     def getMaxBase(self):
         #already sorted
@@ -101,13 +102,15 @@ class Package:
 
     def getDimensions(self):
         dim = []
-        
+        if self.rotation == -1: return self.dimensions
         if self.rotation == Rotation.LWH: dim = [self.length,self.width,self.height]
         if self.rotation == Rotation.WLH: dim = [self.width,self.length,self.height]
         if self.rotation == Rotation.HLW: dim = [self.height,self.length,self.width]
         if self.rotation == Rotation.HWL: dim = [self.height,self.width,self.length]
         if self.rotation == Rotation.LHW: dim = [self.length,self.height,self.width]
         if self.rotation == Rotation.WHL: dim = [self.width,self.height,self.length]
+
+        self.dimensions = dim
 
         return dim
 

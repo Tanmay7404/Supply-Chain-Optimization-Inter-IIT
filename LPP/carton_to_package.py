@@ -29,16 +29,4 @@ def sol_to_package(solution):
             cost=o.get('cost', ''),
             rotation=o.get('rotation', '')
         ))
-        with open('file.csv', mode='a', newline='') as outfile:
-            writer = csv.writer(outfile)
-            p = int(o.get('Priority', '') == 'Priority')
-            writer.writerow([
-                o.get('carton_id', ''),
-                o.get('container_id', ''),
-                str([o.get('x', ''), o.get('y', ''), o.get('z', '')]),
-                str([o.get('DimX', ''), o.get('DimY', ''), o.get('DimZ', '')]),
-                o.get('weight'),
-                o.get('cost'),
-                p
-            ])
     return packages
