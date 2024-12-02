@@ -3,25 +3,33 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import time
 
+intersectingTime = 0
+projectTime = 0
 def calculateEuclideanDistance(point):
         return math.sqrt(point[0] ** 2 + point[1] ** 2 + point[2] ** 2)
 
 #Always LWH is default unless specified otherwise
 
-def isIntersecting(package1,package2,x,y):
-    d1 = package1.getDimensions()
-    d2 = package2.getDimensions()
+def isIntersecting(package1,package2,d1,d2,x):
+
+    x1 = package1.position[x]
+    x2 = x1+d1[x]
+    x3 = package2.position[x]
+    x4 = x3+d2[x]
+
+    return max(x1,x3) < min(x2,x4)
 
     cx1 = package1.position[x] + d1[x]/2
-    cy1 = package1.position[y] + d1[y]/2
+    # cy1 = package1.position[y] + d1[y]/2
     cx2 = package2.position[x] + d2[x]/2
-    cy2 = package2.position[y] + d2[y]/2
+    # cy2 = package2.position[y] + d2[y]/2
 
     ix = max(cx1, cx2) - min(cx1, cx2)
-    iy = max(cy1, cy2) - min(cy1, cy2)
+    # iy = max(cy1, cy2) - min(cy1, cy2)
 
-    return ix < (d1[x]+d2[x])/2 and iy < (d1[y]+d2[y])/2
+    return ix < (d1[x]+d2[x])/2
 
 def getOverlap(rect1,rect2):
     x1 = max(rect1[0],rect2[0])
@@ -95,9 +103,9 @@ class Package:
     
 
     def isIntersecting(self,other):
-        return (isIntersecting(self,other,Axis.LENGTH,Axis.WIDTH) 
-                and isIntersecting(self,other,Axis.HEIGHT,Axis.WIDTH)
-                and isIntersecting(self,other,Axis.LENGTH,Axis.HEIGHT))
+        d1 = self.getDimensions()
+        d2 = other.getDimensions()
+        return (isIntersecting(self,other,d1,d2,0) and isIntersecting(self,other,d1,d2,1) and isIntersecting(self,other,d1,d2,2))
 
 
     def getDimensions(self):
@@ -141,8 +149,6 @@ class ULD:
     def addBox(self, currPackage, pivot, rotations = Rotation.ALL):
         prevPosition = currPackage.position
         currPackage.position = list(pivot)
-        bestRotation = None
-        minEucdist = float('inf')
 
         # Check weight limits
         if self.weightLeft() < currPackage.weight:
@@ -186,8 +192,9 @@ class ULD:
 
             # check for stability?
             for axis in Axis.ALL:
-                if self.project(currPackage,axis) != -1:
-                    currPackage.position[axis] = self.project(currPackage,axis)
+                project = self.project(currPackage,axis)
+                if project != -1:
+                    currPackage.position[axis] = project
 
             
             #check for stability?
@@ -197,7 +204,7 @@ class ULD:
             self.packages.append(currPackage)
             if(currPackage.priority == "Priority"): self.isPriority = True
             return True
-            
+        
         currPackage.position = prevPosition
         return False
     
@@ -566,7 +573,7 @@ class ULD:
                     currpack[i] = pck
                     break
             self.packages = currpack
-            print("YAYY")
+            # print("YAYY")
             return True
         
         self.packages = currpack
