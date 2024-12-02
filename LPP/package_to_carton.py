@@ -217,7 +217,7 @@ def get_specific_from_greedy( container_id, filename= None, packageArray = None)
     cartons = []
     assigned_solutions = []
     for package in packages:
-        if package.ULD == "-1":
+        if package.ULD == "-1" or package.ULD == -1:
             cartons.append(make_carton(package))
             pos.append(package)
         elif package.ULD == container_id:
