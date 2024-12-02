@@ -9,6 +9,7 @@ class Solver2:
         self.priority = []
         self.economy = []
         self.takenPackages = []
+        self.priorityULDs =  0
 
         for package in packages:
             if package.priority == "Priority":
@@ -28,6 +29,7 @@ class Solver2:
         non_priority_packages = [p for p in packages if p.priority != "Priority"]
         
         priority_packages.sort(key=lambda x: x.getVolume(), reverse=True)
+        # priority_packages.sort(key=lambda x: (math.floor(x.getVolume()/10), min(x.getDimensions()[0], x.getDimensions()[1], x.getDimensions()[2])), reverse=True)
         non_priority_packages.sort(key=lambda x: x.cost**3/(x.getVolume()**2 + x.weight**2), reverse=True)
         
         packages[:] = priority_packages + non_priority_packages
@@ -79,22 +81,19 @@ class Solver2:
     # P : we will define new fitpackageEconomy only difference will be we will iterate through uld,package,corner,rotation rest will be same
 
     def assignPackagesPriority(self):
+        ulds = self.ulds[0:len(self.ulds)]
+        cm = {}
+        for i in ulds:
+            cm[i.id] = [[0, 0, 0]]
+            # print("Assigning Priorty ULD: ", uld.id)
+            # [_, packagesInULD] = self.fitPackages(self.packages, uld, [[0, 0, 0]],True)
+        [_,takenPackages] = self.fit_int_ulds(self.packages, ulds, cm,"Assigning Proirity", assigning = 1)
+        self.takenPackages.extend(takenPackages)
 
-        # Initial fit for figuring out the assignment of packages to ULDs
-        priority_bin = 3
-        for uld in self.ulds:
-            print("Assigning Priorty ULD: ", uld.id)
-            # print(uld.length,uld.width,uld.height)
-            [_, packagesInULD] = self.fitPackages(self.packages, uld, [[0, 0, 0]],True)
-            c = 0
-            
-            self.takenPackages.extend(packagesInULD)
-            priority_bin-=1
-            if(priority_bin==0):
-                break
-        
-        
-        for uld in self.ulds:
+        for uld in ulds:
+            if(len(uld.packages)!=0):
+                self.priorityULDs+=1
+        for uld in ulds:
             uld.clearBin()
 
         return
@@ -102,47 +101,54 @@ class Solver2:
     def assignPackagesNormal(self):
 
         # Initial fit for figuring out the assignment of packages to ULDs
-        priority_bin = 3
-        for uld in self.ulds:
-            if(priority_bin!=0):
-                priority_bin-=1
-                continue
-            print("Assigning Normal ULD: ", uld.id)
-            [_, packagesInULD] = self.fitPackages(self.packages, uld, [[0, 0, 0]],True)
-            self.takenPackages.extend(packagesInULD)
-        
-        priority_bin = 3
-        for uld in self.ulds:
-            if(priority_bin!=0):
-                priority_bin-=1
-                continue
+        ulds = self.ulds[self.priorityULDs:len(self.ulds)]
+        cm = {}
+        for i in ulds:
+            cm[i.id] = [[0, 0, 0]]
+        [_,takenPackages] = self.fit_int_ulds(self.packages, ulds, cm,"Assigning Normal")
+        self.takenPackages.extend(takenPackages)
+
+        for uld in ulds:
             uld.clearBin()
 
         return
     
     
 
-    def fit_int_ulds(self,packages,ulds,cornermap,mess):
+    def fit_int_ulds(self,packages,ulds,cornermap,mess, assigning = 0):
+        takenPackages = []
         for ii,uld in enumerate(ulds):
             
-            print("Fitting " +  mess + " ULD: ", uld.id)
-            [corners, _] = self.fitPackages(packages, uld, cornermap[uld.id])
+            print(mess + " ULD: ", uld.id)
+            [corners, taken_pck] = self.fitPackages(packages, uld, cornermap[uld.id])
             done = False
             cornermap[uld.id] = corners
+            takenPackages.extend(taken_pck)
             for unpacked_package in packages:
                 if unpacked_package.ULD == -1:
                     for jj in range(ii+1):
                         ulds[jj].calculatePushLimit()
                         for poss_replace in ulds[jj].packages:
                             if(ulds[jj].inflate_and_replace(unpacked_package,poss_replace)):
+                                if(takenPackages.count(poss_replace) > 0):
+                                    takenPackages.remove(poss_replace)
+                                takenPackages.append(unpacked_package)
                                 cornermap[uld.id] = ulds[jj].recalculate_corners()
                                 cornermap[uld.id].sort(key=lambda x: self.calculateEuclideanDistance(x))
                                 done = True
                                 break
                         if done:
-                            break            
-           
-        return cornermap
+                            break   
+                
+            if(assigning==1):
+                priority_done = True
+                for pack in self.packages:
+                    if (pack not in takenPackages) and (pack.priority == "Priority"):
+                        priority_done = False
+                        break
+                if(priority_done):
+                    break
+        return cornermap,takenPackages
 
     def solve(self):
 
@@ -157,7 +163,7 @@ class Solver2:
 
         # Refit the packages into their respective ULD
         self.sortULDPackages(self.takenPackages)
-        cornermap = self.fit_int_ulds(self.takenPackages, self.ulds, cornermap,"Proirity")
+        [cornermap,_] = self.fit_int_ulds(self.takenPackages, self.ulds, cornermap,"Fitting Proirity")
         # for uld in self.ulds:
         #     # self.sortULDPackages(uldMapping[uld.id])
         #     print("Fitting Priority ULD: ", uld.id)
@@ -168,12 +174,11 @@ class Solver2:
         self.assignPackagesNormal()
         self.sortULDPackages(self.takenPackages)
         
-        cornermap = self.fit_int_ulds(self.takenPackages, self.ulds, cornermap,"Normal")
-        
+        [cornermap,_] = self.fit_int_ulds(self.takenPackages, self.ulds, cornermap,"Fitting Normal")
 
         self.sortULDPackages(self.packages)
 
-        cornermap = self.fit_int_ulds(self.packages, self.ulds, cornermap,"Remaining")
+        [cornermap,_] = self.fit_int_ulds(self.packages, self.ulds, cornermap,"Fitting Remaining")
 
         for uld in self.ulds:
             for package in uld.packages:
