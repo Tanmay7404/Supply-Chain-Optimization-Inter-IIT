@@ -31,16 +31,31 @@ class Solver2:
         priority_packages.sort(key=lambda x: x.getVolume(), reverse=True)
         # priority_packages.sort(key=lambda x: (math.floor(x.getVolume()/10), min(x.getDimensions()[0], x.getDimensions()[1], x.getDimensions()[2])), reverse=True)
         non_priority_packages.sort(key=lambda x: x.cost**3/(x.getVolume()**2 + x.weight**2), reverse=True)
-        
+        # non_priority_packages.sort(key=lambda x: (1e5 * x.cost/x.getVolume() + 1e4 * x.cost/x.weight + x.getVolume()/x.weight), reverse=True)
         packages[:] = priority_packages + non_priority_packages
    
     
     def sortULDPackages(self, packages):
         packages.sort(key=lambda x: (math.floor(x.getDimensions()[2]/10),(x.getVolume())/(x.getDimensions()[2])), reverse=True)
 
-    def sortULDs(self):
-        self.ulds.sort(key=lambda x: x.getWeight(), reverse=True)
+    # def sortULDs(self):
+    #     self.ulds.sort(key=lambda x: x.getWeight(), reverse=True)
 
+    permuationsAll = [[4,5,6,1,2,3],[4,5,6,2,3,1],[4,5,6,3,1,2],[4,5,6,1,3,2],[4,5,6,2,1,3],[4,5,6,3,2,1],
+                      [4,6,5,1,2,3],[4,6,5,2,3,1],[4,6,5,3,1,2],[4,6,5,1,3,2],[4,6,5,2,1,3],[4,6,5,3,2,1],
+                      [5,4,6,1,2,3],[5,4,6,2,3,1],[5,4,6,3,1,2],[5,4,6,1,3,2],[5,4,6,2,1,3],[5,4,6,3,2,1],    
+                      [5,6,4,1,2,3],[5,6,4,2,3,1],[5,6,4,3,1,2],[5,6,4,1,3,2],[5,6,4,2,1,3],[5,6,4,3,2,1],
+                      [6,4,5,1,2,3],[6,4,5,2,3,1],[6,4,5,3,1,2],[6,4,5,1,3,2],[6,4,5,2,1,3],[6,4,5,3,2,1],
+                      [6,5,4,1,2,3],[6,5,4,2,3,1],[6,5,4,3,1,2],[6,5,4,1,3,2],[6,5,4,2,1,3],[6,5,4,3,2,1],
+                      [5,6,3,4,1,2]]                      
+
+    def sortULDs(self,permutation):
+        currPermutation=self.permuationsAll[permutation]
+       
+        mapuldtoperm = {"U4": currPermutation[0], "U5": currPermutation[1], "U6": currPermutation[2], "U1": currPermutation[3], "U2": currPermutation[4], "U3": currPermutation[5]}   
+        #print(self.ulds)
+
+        self.ulds.sort(key=lambda x: mapuldtoperm[x.id], reverse=True)
 
     def fitPackages(self, packages, uld, corners, isassigning = 0):# P : this is fitpackagePriority
         takenPackages = []
@@ -85,10 +100,18 @@ class Solver2:
         cm = {}
         for i in ulds:
             cm[i.id] = [[0, 0, 0]]
-            # print("Assigning Priorty ULD: ", uld.id)
-            # [_, packagesInULD] = self.fitPackages(self.packages, uld, [[0, 0, 0]],True)
-        [_,takenPackages] = self.fit_int_ulds(self.packages, ulds, cm,"Assigning Proirity", assigning = 1)
-        self.takenPackages.extend(takenPackages)
+            print("Assigning Priorty ULD: ", i.id)
+            [_, packagesInULD] = self.fitPackages(self.packages, i, [[0, 0, 0]],True)
+            self.takenPackages.extend(packagesInULD)
+            priority_done = True
+            for pack in self.packages:
+                if (pack not in self.takenPackages) and (pack.priority == "Priority"):
+                    priority_done = False
+                    break
+            if(priority_done):
+                break
+        # [_,takenPackages] = self.fit_int_ulds(self.packages, ulds, cm,"Assigning Proirity", assigning = 1)
+        # self.takenPackages.extend(takenPackages)
 
         for uld in ulds:
             if(len(uld.packages)!=0):
@@ -102,11 +125,14 @@ class Solver2:
 
         # Initial fit for figuring out the assignment of packages to ULDs
         ulds = self.ulds[self.priorityULDs:len(self.ulds)]
-        cm = {}
+        # cm = {}
         for i in ulds:
-            cm[i.id] = [[0, 0, 0]]
-        [_,takenPackages] = self.fit_int_ulds(self.packages, ulds, cm,"Assigning Normal")
-        self.takenPackages.extend(takenPackages)
+            # cm[i.id] = [[0, 0, 0]]
+            print("Assigning Normal ULD: ", i.id)
+            [_, packagesInULD] = self.fitPackages(self.packages, i, [[0, 0, 0]],True)
+            self.takenPackages.extend(packagesInULD)
+        # [_,takenPackages] = self.fit_int_ulds(self.packages, ulds, cm,"Assigning Normal")
+        # self.takenPackages.extend(takenPackages)
 
         for uld in ulds:
             uld.clearBin()
@@ -140,20 +166,12 @@ class Solver2:
                         if done:
                             break   
                 
-            if(assigning==1):
-                priority_done = True
-                for pack in self.packages:
-                    if (pack not in takenPackages) and (pack.priority == "Priority"):
-                        priority_done = False
-                        break
-                if(priority_done):
-                    break
         return cornermap,takenPackages
 
     def solve(self):
 
         self.sortPackagesAssignment(self.packages)
-        self.sortULDs()
+        self.sortULDs(13)
 
         self.assignPackagesPriority()
 

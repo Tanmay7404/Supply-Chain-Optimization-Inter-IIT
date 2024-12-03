@@ -70,7 +70,7 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
                             'priority': package.priority
                         }
                     new_cartons.append(new_package)
-                    print(new_package)
+                    # print(new_package)
 
                 else:
                     new_package = {
@@ -83,7 +83,7 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
                         "priority": package.priority
                     }
                     container_assigned[package.ULD].append(new_package)
-            print(len(new_cartons))
+            # print(len(new_cartons))
         else:
             for container in containers:
                 # cartons = []
@@ -134,7 +134,7 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
 
         old_new_cartons = new_cartons
         new_cartons = sorted(new_cartons, key=lambda x: (floor((x['length']*x['width']*x['height'])/100),min(x['length'],x['width'],x['height']),x['weight'],x['cost']))
-        new_cartons = new_cartons[:5]
+        new_cartons = new_cartons[:10]
 
         if file_path is None:
             for container in container_assigned:
@@ -158,8 +158,8 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
                     })
                 container_wise_solution[container] = original_solution
 
-        for container in containers:
-            print(container_assigned[container['id']].__len__())
+        # for container in containers:
+            # print(container_assigned[container['id']].__len__())
 
         for i in new_cartons:
             containers=sorted(containers,key=lambda x: x['free_space'],reverse=True)

@@ -184,6 +184,8 @@ class ULD:
                     currPackage.position[axis] = project
 
             
+            # if not self.checkStabilityPackage(currPackage):
+            #     continue
             #check for stability?
             #update uld criteria if needed for solver
             currPackage.ULD = self.id
