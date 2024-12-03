@@ -3,10 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-import time
 
-intersectingTime = 0
-projectTime = 0
 def calculateEuclideanDistance(point):
         return math.sqrt(point[0] ** 2 + point[1] ** 2 + point[2] ** 2)
 
@@ -20,16 +17,6 @@ def isIntersecting(package1,package2,d1,d2,x):
     x4 = x3+d2[x]
 
     return max(x1,x3) < min(x2,x4)
-
-    cx1 = package1.position[x] + d1[x]/2
-    # cy1 = package1.position[y] + d1[y]/2
-    cx2 = package2.position[x] + d2[x]/2
-    # cy2 = package2.position[y] + d2[y]/2
-
-    ix = max(cx1, cx2) - min(cx1, cx2)
-    # iy = max(cy1, cy2) - min(cy1, cy2)
-
-    return ix < (d1[x]+d2[x])/2
 
 def getOverlap(rect1,rect2):
     x1 = max(rect1[0],rect2[0])

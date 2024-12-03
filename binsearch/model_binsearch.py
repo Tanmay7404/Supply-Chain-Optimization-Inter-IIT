@@ -18,7 +18,7 @@ def container_loading_with_relative_constraints(cartons, containers,timeout = 30
 
     # Create a model
     model = gp.Model("3D_Container_Loading_with_Relative_Positioning")
-    # model.Params.LogToConsole = 0 # Show optimization logs
+    model.Params.LogToConsole = 0 # Show optimization logs
 
     # Define constants
     M = 100000  # Large constant for "big-M" constraints

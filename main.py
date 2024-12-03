@@ -3,7 +3,7 @@ from heuristics.solver2_withSpaceDefrag import Solver2
 from utils.inputGetter import getPackages, getULD
 from utils.cartons import cartons
 from LPP.carton_to_package import sol_to_package
-from utils.containers import containers
+from utils.containers import containers, containers_specific
 from LPP.model import all_swaps as solver
 from LPP.package_to_carton import get_from_greedy, get_specific_from_greedy
 from binsearch.binsearch import binsearch
@@ -35,24 +35,26 @@ solver2 = Solver2(packages,ulds)
 solver2.solve()
 
 generateOutput(packages)
+
+metrics(packages,ulds,k)
 cartons = cartons()
-containers = containers()
+containerss = containers()
 
 
-binsearchSolution = binsearch(packageArray=packages, uldArray=ulds)
+binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=60)
 newPackages = sol_to_package(binsearchSolution)
 
 
 
-
 updatePackages(packages,newPackages,ulds)  
-generateOutput(newPackages)
+generateOutput(packages)
 
 metrics(packages,ulds,k)
 uldPlot(ulds)
 
 init,cartons,assigned_solutions = get_specific_from_greedy(ulds[-1].id,packageArray=packages)
-solution = solver(cartons=cartons, containers=containers, init=init, assigned_solutions=assigned_solutions)
+containerss = containers_specific(ulds[-1].id)
+solution = solver(cartons=cartons, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=600)
 
 generateOutput(sol_to_package(solution))
 finalsol = sol_to_package(solution)
