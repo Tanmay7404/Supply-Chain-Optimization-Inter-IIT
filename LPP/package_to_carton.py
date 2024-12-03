@@ -39,7 +39,7 @@ def get_from_greedy(filename = None, packageArray = None):
             if package.id >= other_package.id:
                 continue
             dict = {}
-            if (package.ULD != other_package.ULD):
+            if package.ULD != other_package.ULD :
                 dict["aik"] = 0
                 dict["bik"] = 0
                 dict["cik"] = 0
@@ -150,8 +150,6 @@ def get_from_greedy(filename = None, packageArray = None):
     initial_solution = {'sij': initialsij, 'xi': initialxi, 'yi': initialyi, 'zi': initialzi,
                         'relative_position': initialrelative_position, 'orientation': initialorientation}
     return initial_solution
-
-
 def make_carton(package):
     v = [float(package.dimensions[0]), float(package.dimensions[1]), float(package.dimensions[2])]
     v.sort()
@@ -188,7 +186,12 @@ def make_solution(package):
     }
     return carton
 
-
+def are_base_area_intersecting(package1, package2):
+    if package1.position[0] + package1.dimensions[0] <= package2.position[0] or package2.position[0] + package2.dimensions[0] <= package1.position[0]:
+        return False
+    if package1.position[1] + package1.dimensions[1] <= package2.position[1] or package2.position[1] + package2.dimensions[1] <= package1.position[1]:
+        return False
+    return True
 def get_specific_from_greedy( container_id, filename= None, packageArray = None):
 
     import csv
@@ -213,6 +216,9 @@ def get_specific_from_greedy( container_id, filename= None, packageArray = None)
                 packages.append(package)
 
     initialsij = {}
+    Pcij = {}
+    wi = {}
+    wij = {}
     pos = []
     cartons = []
     assigned_solutions = []
@@ -237,12 +243,30 @@ def get_specific_from_greedy( container_id, filename= None, packageArray = None)
     initialxi = {}
     initialyi = {}
     initialzi = {}
+
+
+    for package1 in pos:
+        for package2 in pos:
+            if package1.id == package2.id:
+                continue
+            Pcij[(package1.id, package2.id, container_id)] = 0
+            wij[(package1.id, package2.id)] = 0
+            if package1.ULD != package2.ULD or package1.ULD != container_id:
+                continue
+            Pcij[(package1.id, package2.id, container_id)] = 1
+            if are_base_area_intersecting(package1, package2) and package1.position[2] == package2.position[2] + package2.dimensions[2]:
+                    wij[(package1.id, package2.id)] = 1
+
+
     for package in pos:
         # print(package.id, package.position[0])
         initialxi[package.id] = package.position[0]
         initialyi[package.id] = package.position[1]
         initialzi[package.id] = package.position[2]
-        if package.position[0] == -1:
+        wi[package.id] = 0
+        if package.position[2] == 0:
+            wi[package.id] = 1
+        if package.ULD == -1 or package.ULD == "-1":
             initialxi[package.id] = 0
             initialyi[package.id] = 0
             initialzi[package.id] = 0
@@ -362,6 +386,23 @@ def get_specific_from_greedy( container_id, filename= None, packageArray = None)
     package2 = packages[-2]
     initial_solution = {'sij': initialsij, 'xi': initialxi, 'yi': initialyi, 'zi': initialzi,
                         'relative_position': initialrelative_position, 'orientation': initialorientation}
-
+    stability_constraints = {'Pcij': Pcij, 'wi': wi, 'wij': wij}
+    # print(initial_solution)
     cartons.sort(key=lambda x: x['id'])
-    return initial_solution, cartons, assigned_solutions
+    return initial_solution, cartons, assigned_solutions, stability_constraints
+
+def package_csv_to_sol(filename):
+    import csv
+    from utils.structs import CartonPackage as Package
+    import ast
+    packages = []
+    sol = []
+    ULDS = ["U1", "U2", "U3", "U4", "U5", "U6"]
+    with open(filename, mode='r') as file:
+        csv_reader = csv.reader(file)
+        for row in csv_reader:
+            if row:
+                package = Package(row[0], row[1], ast.literal_eval(row[2]), ast.literal_eval(row[3]), row[4], row[5],
+                                  row[6])
+                sol.append(make_solution(package))
+    return sol
