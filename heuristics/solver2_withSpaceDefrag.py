@@ -63,7 +63,7 @@ class Solver2:
         for package in packages:
             uld.calculatePushLimit()
             
-            if package.ULD == -1: 
+            if str(package.ULD) == '-1': 
                 done = False
 
                 corners.sort(key=lambda corner: self.calculateEuclideanDistance(corner)) #sort on basis of euclidian
@@ -151,7 +151,7 @@ class Solver2:
             cornermap[uld.id] = corners
             takenPackages.extend(taken_pck)
             for unpacked_package in packages:
-                if unpacked_package.ULD == -1:
+                if str(unpacked_package.ULD) == '-1':
                     for jj in range(ii+1):
                         ulds[jj].calculatePushLimit()
                         for poss_replace in ulds[jj].packages:

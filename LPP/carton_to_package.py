@@ -8,7 +8,7 @@ def sol_to_package(solution):
 
     packages = []
 
-    print(solution)
+    # print(solution)
 
     for o in solution:
 
