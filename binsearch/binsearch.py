@@ -133,8 +133,8 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
         
 
         old_new_cartons = new_cartons
-        new_cartons = sorted(new_cartons, key=lambda x: (floor((x['length']*x['width']*x['height'])/100),min(x['length'],x['width'],x['height']),x['weight'],x['cost']))
-        new_cartons = new_cartons[:10]
+        new_cartons = sorted(new_cartons, key=lambda x: (floor((x['length']*x['width']*x['height'])/100),-x['cost'],min(x['length'],x['width'],x['height'],x['weight'])))
+        new_cartons = new_cartons[:20]
 
         if file_path is None:
             for container in container_assigned:

@@ -18,7 +18,7 @@ class Solver2:
                 self.economy.append(package)
 
     def calculateEuclideanDistance(self, point):
-        return math.sqrt(point[0] ** 2 + point[1] ** 2 + point[2] ** 2)
+        return math.sqrt(point[0]**2   + point[1]**2  + point[2]**2 )
     
     def sortPackagesAssignment(self, packages):
 
@@ -30,7 +30,7 @@ class Solver2:
         
         priority_packages.sort(key=lambda x: x.getVolume(), reverse=True)
         # priority_packages.sort(key=lambda x: (math.floor(x.getVolume()/10), min(x.getDimensions()[0], x.getDimensions()[1], x.getDimensions()[2])), reverse=True)
-        non_priority_packages.sort(key=lambda x: x.cost**3/(x.getVolume()**2 + x.weight**2), reverse=True)
+        non_priority_packages.sort(key=lambda x: x.cost**3/(x.getVolume()**2 + x.weight**2) , reverse=True)
         # non_priority_packages.sort(key=lambda x: (1e5 * x.cost/x.getVolume() + 1e4 * x.cost/x.weight + x.getVolume()/x.weight), reverse=True)
         packages[:] = priority_packages + non_priority_packages
    
