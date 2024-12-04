@@ -19,18 +19,18 @@ def cut_short_rem(cartons):
     ass = ass + rem[0:40]
     rem = rem[40:]
     return ass, rem
-def all_swaps(cartons, containers, init, assigned_solutions):
+def all_swaps(cartons, containers, init, assigned_solutions,timeout = 600):
     # print(containers)
     # print(len(cartons))
     # print(len(assigned_solutions))
     model = gp.Model("3D_Container_Loading_with_Relative_Positioning")
     # model.Params.LogToConsole = 1  # Show optimization logs
-    # model.setParam('TimeLimit', timeout)  # Set time limit to 10 minutes
+    model.setParam('TimeLimit', timeout)  # Set time limit to 10 minutes
     # Define constants
     M = 100000  # Large constant for "big-M" constraints
-    cartons, rem = cut_short_rem(cartons)
-    assigned_solutions += rem
-    additional_cost = 0 + sum(carton['cost'] for carton in rem)
+    # cartons, rem = cut_short_rem(cartons)
+    # assigned_solutions += rem
+    # additional_cost = 0 + sum(carton['cost'] for carton in rem)
 
     # Decision variables
     sij = {}  # Binary: carton i assigned to container j
@@ -176,28 +176,36 @@ def all_swaps(cartons, containers, init, assigned_solutions):
     print("initCost")
     print(initcost)
     for (carton_id, container_id), value in init['sij'].items():
-        sij[(carton_id, container_id)].Start = value
+        if (carton_id, container_id) in sij:
+            sij[(carton_id, container_id)].Start = value
     for carton_id, value in init['xi'].items():
-        xi[carton_id].Start = value
+        if carton_id in xi:
+            xi[carton_id].Start = value
     for carton_id, value in init['yi'].items():
-        yi[carton_id].Start = value
+        if carton_id in yi:
+            yi[carton_id].Start = value
     for carton_id, value in init['zi'].items():
-        zi[carton_id].Start = value
+        if carton_id in zi:
+            zi[carton_id].Start = value
     for carton_id, orientations in init['orientation'].items():
         for orient, value in orientations.items():
-            orientation[carton_id][orient].Start = value
+            if carton_id in orientation and orient in orientation[carton_id]:
+                orientation[carton_id][orient].Start = value
     for i in range(len(cartons)):
         for k in range(i + 1, len(cartons)):
             carton_i = cartons[i]
             carton_k = cartons[k]
-            for orient, value in init['relative_position'][(carton_i['id'], carton_k['id'])].items():
-                relative_position[(carton_i['id'], carton_k['id'])][orient].Start = value
+            if (carton_i['id'], carton_k['id']) in init['relative_position']:
+                for orient, value in init['relative_position'][(carton_i['id'], carton_k['id'])].items():
+                    if (carton_i['id'], carton_k['id']) in relative_position and orient in relative_position[(carton_i['id'], carton_k['id'])]:
+                        relative_position[(carton_i['id'], carton_k['id'])][orient].Start = value
 
     # x = 5000 * sum(max(sij[(carton['id'], container['id'])] * carton['priority'] for carton in cartons) for container in containers)
 
     penalty = sum(
         (1 - (sum(sij[(carton['id'], container['id'])] for container in containers))) * carton['cost'] for carton in
-        cartons) + additional_cost
+        cartons) 
+    # + additional_cost
     model.setObjective(penalty, GRB.MINIMIZE)
     model.optimize()
     # Extract the solution

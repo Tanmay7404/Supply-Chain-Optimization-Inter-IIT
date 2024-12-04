@@ -41,7 +41,7 @@ cartons = cartons()
 containerss = containers()
 
 
-binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=45)
+binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=30)
 newPackages = sol_to_package(binsearchSolution)
 
 
@@ -50,13 +50,13 @@ updatePackages(packages,newPackages,ulds)
 generateOutput(packages)
 
 metrics(packages,ulds,k)
-uldPlot(ulds)
+# uldPlot(ulds)
 solution = binsearchSolution
 
-for uld in reversed(ulds):
-    init,cartons,assigned_solutions = get_specific_from_greedy(uld.id,packageArray=packages)
+for uld in reversed(ulds[5:]):
+    init,cartons,assigned_solutions,_ = get_specific_from_greedy(uld.id,packageArray=packages)
     containerss = containers_specific(uld.id)
-    solution = solver(cartons=cartons, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=900)
+    solution = solver(cartons=cartons, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=600)
     temp = sol_to_package(solution)
     updatePackages(packages,temp,ulds)
 

@@ -1,3 +1,6 @@
+import math
+
+
 def get_from_greedy(filename = None, packageArray = None):
     import csv
     from utils.structs import CartonPackage as Package
@@ -222,17 +225,29 @@ def get_specific_from_greedy( container_id, filename= None, packageArray = None)
     pos = []
     cartons = []
     assigned_solutions = []
+    unassigned_packages= []
+
     for package in packages:
         if package.ULD == "-1" or package.ULD == -1:
+            unassigned_packages.append(package)
+    
+    unassigned_packages.sort(key=lambda x: (x.cost//5, x.weight))
+    unassigned_packages = unassigned_packages[:math.floor((unassigned_packages.__len__())/2.5)]
+
+    for package in unassigned_packages:
+        cartons.append(make_carton(package))
+        pos.append(package)
+
+    for package in packages:
+        if package.ULD == container_id:
             cartons.append(make_carton(package))
             pos.append(package)
-        elif package.ULD == container_id:
-            cartons.append(make_carton(package))
-            pos.append(package)
-        else:
+        elif package not in unassigned_packages:
             assigned_solutions.append(make_solution(package))
         if package.ULD != container_id and package.ULD != "-1":
             continue
+
+    for package in pos:
         for uld in ULDS:
             if uld != container_id:
                 continue
