@@ -8,7 +8,7 @@ from utils.lpp_utils import are_cubes_intersecting, is_box_inside_container, plo
 file_path = 'output.csv'
 # get_containers()
 
-def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 30,packageNum = 5):
+def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 30):
 
 
 
@@ -134,7 +134,7 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
 
         old_new_cartons = new_cartons
         new_cartons = sorted(new_cartons, key=lambda x: (floor((x['length']*x['width']*x['height'])/100),-x['cost'],min(x['length'],x['width'],x['height']),x['weight']))
-        new_cartons = new_cartons[:packageNum]
+        new_cartons = new_cartons[:10]
 
         if file_path is None:
             for container in container_assigned:
