@@ -1,7 +1,7 @@
 import streamlit as st
-import page1
-import page2
-import page3
+import pages.Input as Input
+import pages.Manual_Input as Manual_Input
+import pages.Visualisation as Visualisation
 
 
 # Initialize session state for page navigation if not already set
@@ -35,11 +35,11 @@ def main():
     if st.session_state.page == 'main':
         main_page()
     elif st.session_state.page == 'upload_file':
-        page1.page()
+        Input.page()
     elif st.session_state.page == 'manual_input':
-        page2.page()
+        Manual_Input.page()
     elif st.session_state.page == 'visualization':
-        page3.page()
+        Visualisation.page()
 
 if __name__ == "__main__":
     main()

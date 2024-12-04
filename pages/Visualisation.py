@@ -2,14 +2,15 @@ import streamlit as st
 import csv
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from structs import ULD, Package
-from solver2_withSpaceDefrag import Solver2
+from utils.structs import ULD, Package
+from heuristics.solver2_withSpaceDefrag import Solver2
 import numpy as np
 import plotly.graph_objs as go
 import colorsys
 import time
 import plotly.colors as colors
-      
+from main import *
+
 k=5000
 
 def generate_color_map(packages):
@@ -420,11 +421,11 @@ def metrics(ulds, packages):
     packagesTotal = len(packages)
     packagesPriority = sum(1 for p in packages if p.priority == "Priority")
     packagesEconomy = packagesTotal - packagesPriority
-    packagesTotalTaken = sum(1 for p in packages if p.ULD != -1)
-    packagesPriorityTaken = sum(1 for p in packages if p.priority == "Priority" and p.ULD != -1)
+    packagesTotalTaken = sum(1 for p in packages if str(p.ULD) != '-1')
+    packagesPriorityTaken = sum(1 for p in packages if p.priority == "Priority" and str(p.ULD) != '-1')
     packagesEconomyTaken = packagesTotalTaken - packagesPriorityTaken
 
-    cost = sum(p.cost for p in packages if p.ULD == -1)
+    cost = sum(p.cost for p in packages if str(p.ULD) == '-1')
     for uld in ulds:
         if uld.isPriority:
             cost += k
@@ -464,9 +465,7 @@ def page():
         # File upload method
         ulds, packages = process_file_input()
         # Solve and visualize
-        solver2 = Solver2(packages, ulds)
-        solver2.solve()
-
+        run_all(ulds, packages)
         #sort by z,x,y
         
         st.subheader("Visualizing ULDs and Packages")

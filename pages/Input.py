@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import plotly.graph_objs as go
 import plotly.express as px
-from structs import ULD,Package,getCube
+from utils.structs import ULD,Package,getCube
 import csv
-from solver2_withSpaceDefrag import Solver2
+from heuristics.solver2_withSpaceDefrag import Solver2
 import math
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 

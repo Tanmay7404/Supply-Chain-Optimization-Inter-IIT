@@ -1,5 +1,5 @@
 import streamlit as st
-from structs import ULD, Package
+from utils.structs import ULD, Package
 
 
 def reset_state():

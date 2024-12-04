@@ -31,44 +31,45 @@ def generateOutput(packages):
 getPackages(packages)
 getULD(ulds)
 
-solver2 = Solver2(packages,ulds)
-solver2.solve()
+def run_all(ulds, packages):
+    solver2 = Solver2(packages,ulds)
+    solver2.solve()
 
-generateOutput(packages)
+    generateOutput(packages)
 
-metrics(packages,ulds,k)
-cartons = cartons()
-containerss = containers()
-
-
-binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=30)
-newPackages = sol_to_package(binsearchSolution)
+    metrics(packages,ulds,k)
+    cartonss = cartons()
+    containerss = containers()
 
 
-
-updatePackages(packages,newPackages,ulds)  
-generateOutput(packages)
-
-metrics(packages,ulds,k)
-# uldPlot(ulds)
-solution = binsearchSolution
-
-for uld in reversed(ulds[5:]):
-    init,cartons,assigned_solutions,_ = get_specific_from_greedy(uld.id,packageArray=packages)
-    containerss = containers_specific(uld.id)
-    solution = solver(cartons=cartons, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=600)
-    temp = sol_to_package(solution)
-    updatePackages(packages,temp,ulds)
-
-generateOutput(sol_to_package(solution))
-finalsol = sol_to_package(solution)
+    binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=1, packageNum=5)
+    newPackages = sol_to_package(binsearchSolution)
 
 
-updatePackages(packages,finalsol,ulds)
-    
+
+    updatePackages(packages,newPackages,ulds)  
+    generateOutput(packages)
+
+    metrics(packages,ulds,k)
+    # uldPlot(ulds)
+    solution = binsearchSolution
+
+    for uld in reversed(ulds[5:]):
+        init,cartonss,assigned_solutions,_ = get_specific_from_greedy(uld.id,packageArray=packages)
+        containerss = containers_specific(uld.id)
+        solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=60)
+        temp = sol_to_package(solution)
+        updatePackages(packages,temp,ulds)
+
+    generateOutput(sol_to_package(solution))
+    finalsol = sol_to_package(solution)
 
 
-generateOutput(packages)
-metrics(packages,ulds,k)
-uldPlot(ulds)
-# package array plot here
+    updatePackages(packages,finalsol,ulds)
+        
+
+
+    generateOutput(packages)
+    metrics(packages,ulds,k)
+    # uldPlot(ulds)
+    # package array plot here
