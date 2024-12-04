@@ -1,8 +1,11 @@
 import csv
 from utils.structs import ULD,Package
 
-def getPackages(packages):
-    f = open("package.csv", mode="r")
+def getPackages(packages,test=False,idx = 0):
+    if test:
+        f = open("Test_Data/dummy_data_"+str(idx)+".csv", mode="r")
+    else:
+        f = open("package.csv", mode="r")
     packageCSV = csv.reader(f)
     for p in packageCSV:
         if p[5] == "Economy":

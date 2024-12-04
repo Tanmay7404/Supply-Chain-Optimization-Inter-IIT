@@ -20,6 +20,14 @@ class Solver2:
     def calculateEuclideanDistance(self, point):
         return math.sqrt(point[0]**2   + point[1]**2  + point[2]**2 )
     
+    def isPriorityDone(self):
+        priority_done = True
+        for pack in self.packages:
+            if (pack.ULD==-1) and (pack.priority == "Priority"):
+                priority_done = False
+                break
+        return priority_done
+    
     def sortPackagesAssignment(self, packages):
 
         k=4
@@ -98,16 +106,12 @@ class Solver2:
     def assignPackagesPriority(self):
         ulds = self.ulds[0:len(self.ulds)]
         cm = {}
-        for i in ulds:
-            cm[i.id] = [[0, 0, 0]]
-            print("Assigning Priorty ULD: ", i.id)
-            [_, packagesInULD] = self.fitPackages(self.packages, i, [[0, 0, 0]],True)
+        for uld in ulds:
+            cm[uld.id] = [[0, 0, 0]]
+            print("Assigning Priorty ULD: ", uld.id)
+            [_, packagesInULD] = self.fitPackages(self.packages, uld, [[0, 0, 0]],True)
             self.takenPackages.extend(packagesInULD)
-            priority_done = True
-            for pack in self.packages:
-                if (pack not in self.takenPackages) and (pack.priority == "Priority"):
-                    priority_done = False
-                    break
+            priority_done = self.isPriorityDone()
             if(priority_done):
                 break
         # [_,takenPackages] = self.fit_int_ulds(self.packages, ulds, cm,"Assigning Proirity", assigning = 1)
@@ -165,6 +169,10 @@ class Solver2:
                                 break
                         if done:
                             break   
+            if(assigning==1):
+                priority_done = self.isPriorityDone()
+                if(priority_done):
+                    break
                 
         return cornermap,takenPackages
 
@@ -182,15 +190,13 @@ class Solver2:
         # Refit the packages into their respective ULD
         self.sortULDPackages(self.takenPackages)
         [cornermap,_] = self.fit_int_ulds(self.takenPackages, self.ulds, cornermap,"Fitting Proirity")
-        # for uld in self.ulds:
-        #     # self.sortULDPackages(uldMapping[uld.id])
-        #     print("Fitting Priority ULD: ", uld.id)
-        #     [corners, _] = self.fitPackages(self.takenPackages, uld, [[0, 0, 0]])
-        #     cornermap[uld.id] = corners
 
         self.takenPackages = []
         self.assignPackagesNormal()
         self.sortULDPackages(self.takenPackages)
+
+        if(not self.isPriorityDone()):
+            self.sortPackagesAssignment(self.packages)
         
         [cornermap,_] = self.fit_int_ulds(self.takenPackages, self.ulds, cornermap,"Fitting Normal")
 

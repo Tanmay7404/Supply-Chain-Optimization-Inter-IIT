@@ -8,7 +8,7 @@ from LPP.model import all_swaps as solver
 from LPP.package_to_carton import get_from_greedy, get_specific_from_greedy
 from binsearch.binsearch import binsearch
 from utils.lpp_utils import are_cubes_intersecting, is_box_inside_container, plot
-from utils.metrics import metrics, uldPlot
+from utils.metrics import metrics, uldPlot, metrics_test,metrics_test_print
 from utils.updatePackages import updatePackages
 
 
@@ -28,6 +28,25 @@ def generateOutput(packages):
     for package in packages:
         outputCSV.writerow([package.id,package.ULD,package.position,package.getDimensions(),package.weight,package.cost,package.rotation,package.priority])
 
+def run_tester():
+    for i in range(1,11):
+        packagest = []
+        uldst = []
+        getULD(uldst)
+        getPackages(packagest,test=True,idx=i)
+        solver2 = Solver2(packagest,uldst)
+        solver2.solve()
+        metrics_test(uldst,packagest)
+        print(f"Test {i} done")
+
+    getPackages(packages)
+    getULD(ulds)
+
+    solver2 = Solver2(packages,ulds)
+    solver2.solve()
+    metrics_test(ulds,packages)
+    metrics_test_print("file_name")
+
 getPackages(packages)
 getULD(ulds)
 
@@ -41,7 +60,7 @@ cartons = cartons()
 containerss = containers()
 
 
-binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=30)
+binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=30,packageNum=10)
 newPackages = sol_to_package(binsearchSolution)
 
 
