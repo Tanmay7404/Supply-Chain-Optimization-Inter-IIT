@@ -2,22 +2,35 @@ import csv
 import ast
 from utils.structs import CartonPackage as Package
 
+import csv
+import ast
+from utils.structs import CartonPackage as Package
+
 
 def sol_to_package(solution):
     # container = solution[0]['container_id']
 
     packages = []
-
-    # print(solution)
-
     for o in solution:
+        if o.get('x') != None:
+            x = o['x']
+            y = o['y']
+            z = o['z']
+        else:
+            x = -1
+            y = -1
+            z = -1
+        if o.get('DimX') != None:
+            dimX = o['DimX']
+            dimY = o['DimY']
+            dimZ = o['DimZ']
+        else:
+            v = [float(o['length']), float(o['width']), float(o['height'])]
+            v.sort()
+            dimX = v[0]
+            dimY = v[1]
+            dimZ = v[2]
 
-        x = o['x']
-        y = o['y']
-        z = o['z']
-        dimX = o['DimX']
-        dimY = o['DimY']
-        dimZ = o['DimZ']
 
 
         packages.append(Package(

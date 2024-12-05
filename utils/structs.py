@@ -419,6 +419,10 @@ class ULD:
                 if package == otherPackage: continue
                 if package.isIntersecting(otherPackage):
                     print("Package ",package.id," is intersecting with ",otherPackage.id)
+                    print("Coordinates ",package.position)
+                    print("Dimensions ",package.getDimensions())
+                    print("Coordinates ",otherPackage.position)
+                    print("Dimensions ",otherPackage.getDimensions())
                     
 
         for package in self.packages:

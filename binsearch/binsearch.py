@@ -1,16 +1,30 @@
 import csv
 from math import floor
-from binsearch.model_binsearch_stability import container_loading_with_relative_constraints as solver
+from binsearch.model_binsearch import container_loading_with_relative_constraints as solver
 from utils.lpp_utils import are_cubes_intersecting, is_box_inside_container, plot
+from LPP.carton_to_package import sol_to_package
+from LPP.package_to_carton import make_solution
 
-
+def package_csv_to_sol(filename):
+    import csv
+    from utils.structs import CartonPackage as Package
+    import ast
+    packages = []
+    sol = []
+    ULDS = ["U1", "U2", "U3", "U4", "U5", "U6"]
+    with open(filename, mode='r') as file:
+        csv_reader = csv.reader(file)
+        for row in csv_reader:
+            if row:
+                package = Package(row[0], row[1], ast.literal_eval(row[2]), ast.literal_eval(row[3]), row[4], row[5],
+                                  row[6])
+                sol.append(make_solution(package))
+    return sol
 
 file_path = 'output.csv'
 # get_containers()
 
-def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 30, packageNum = 5):
-
-
+def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 30):
 
     def get_more_packages(file_path = None, packageArray = None, uldArray = None):
         new_cartons = []
@@ -22,151 +36,145 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
         extra_fitted_cartons = []
         cost_reduction = 0
 
+        for container in uldArray:
+            container = {
+                "id": container.id,
+                "length": container.length,
+                "width": container.width,
+                "height": container.height,
+                "weight": container.weight_limit
+            }
+            container['free_space'] = container['length'] * container['width'] * container['height']
+            same_assignment_cartons.append(container['id'])
+            containers.append(container)
 
-        if file_path is None:
-            for container in uldArray:
-                container = {
-                    "id": container.id,
-                    "length": container.length,
-                    "width": container.width,
-                    "height": container.height,
-                    "weight": container.weight_limit
-                }
-                container['free_space'] = container['length'] * container['width'] * container['height']
-                same_assignment_cartons.append(container['id'])
-                containers.append(container)
-        else:
-            file1_path = './ULD.csv'
-            with open(file1_path, mode='r') as file:
-                csv_reader = csv.reader(file)
-                for row in csv_reader:
-                    container = {
-                        "id": row[0],
-                        "length": float(row[1]),
-                        "width": float(row[2]),
-                        "height": float(row[3]),
-                        "weight": float(row[4])
-                    }
-                    same_assignment_cartons.append(container['id'])
-                    container['free_space'] = container['length'] * container['width'] * container['height']
-                    containers.append(container)
 
         container_assigned = {container['id']: [] for container in containers}
         container_lists = {container['id']: [] for container in containers}
 
+        if file_path:
+            soln=package_csv_to_sol(file_path)
+            packageArray=sol_to_package(soln)
 
-        if file_path is None:
-            for package in packageArray:
-                package.dimensions = package.getDimensions()
-                # package.dimensions.sort()
-                if (package.ULD == -1):
-                    new_package = {
-                            'id': package.id,
-                            'length': package.dimensions[0],
-                            'width': package.dimensions[1],
-                            'height': package.dimensions[2],
-                            'weight': package.weight,
-                            'cost': package.cost,
-                            'priority': package.priority
-                        }
-                    new_cartons.append(new_package)
-                    # print(new_package)
-
-                else:
-                    new_package = {
-                        "id": package.id,
-                        "length": package.dimensions[0],
-                        "width": package.dimensions[1],
-                        "height": package.dimensions[2],
-                        "weight": package.weight,
-                        "cost": package.cost,
-                        "priority": package.priority
+        # if file_path is None:
+        for package in packageArray:
+            package.dimensions = package.getDimensions()
+            # package.dimensions.sort()
+            if (package.ULD == -1 or package.ULD == '-1'):
+                new_package = {
+                        'id': package.id,
+                        'length': package.dimensions[0],
+                        'width': package.dimensions[1],
+                        'height': package.dimensions[2],
+                        'weight': package.weight,
+                        'cost': package.cost,
+                        'priority': package.priority
                     }
-                    container_assigned[package.ULD].append(new_package)
-            # print(len(new_cartons))
-        else:
-            for container in containers:
-                # cartons = []
-                # print(container['id'])
-                with open(file_path, mode='r') as file:
-                    csv_reader = csv.reader(file)
-                    for row in csv_reader:
-                        if not ' '.join(row).strip():
-                            continue
-                        if row[1] == container['id']:
-                            package_id = row[0]
-                            dimensions = eval(row[3])
-                            # print("solving for ", package_id, "th package")
-                            container_assigned[container['id']].append(
-                                {
-                                    'id': package_id,
-                                    'length': dimensions[0],
-                                    'width': dimensions[1],
-                                    'height': dimensions[2],
-                                    'weight': int(float(row[4])),
-                                    'cost' : int(float(row[5])),
-                                    'priority': row[7]   
-                                }
-                            )
-                            container['free_space'] -= dimensions[0] * dimensions[1] * dimensions[2]
+                new_cartons.append(new_package)
+                # print(new_package)
 
-            with open(file_path, mode='r') as file:
-                csv_reader = csv.reader(file)
-                for row in csv_reader:
-                    if not ' '.join(row).strip():
-                        continue
-                    if row[1] == '-1':
-                        package_id = row[0]
-                        dimensions = eval(row[3])
-                        new_cartons.append(
-                            {
-                                'id': package_id,
-                                'length': dimensions[0],
-                                'width': dimensions[1],
-                                'height': dimensions[2],
-                                'weight': int(float(row[4])),
-                                'cost': int(float(row[5])),
-                                'priority': row[7]
-                            }
-                        )
+            else:
+                new_package = {
+                    "id": package.id,
+                    "length": package.dimensions[0],
+                    "width": package.dimensions[1],
+                    "height": package.dimensions[2],
+                    "weight": package.weight,
+                    "cost": package.cost,
+                    "priority": package.priority
+                }
+                container_assigned[package.ULD].append(new_package)
+                for container in containers:
+                    if container['id'] == package.ULD:
+                        container['free_space'] -= package.dimensions[0] * package.dimensions[1] * package.dimensions[2]
+            # print(len(new_cartons))
+        # else:
+        #     for container in containers:
+        #         # cartons = []
+        #         # print(container['id'])
+        #         with open(file_path, mode='r') as file:
+        #             csv_reader = csv.reader(file)
+        #             for row in csv_reader:
+        #                 if not ' '.join(row).strip():
+        #                     continue
+        #                 if row[1] == container['id']:
+        #                     package_id = row[0]
+        #                     dimensions = eval(row[3])
+        #                     # print("solving for ", package_id, "th package")
+        #                     container_assigned[container['id']].append(
+        #                         {
+        #                             'id': package_id,
+        #                             'length': dimensions[0],
+        #                             'width': dimensions[1],
+        #                             'height': dimensions[2],
+        #                             'weight': int(float(row[4])),
+        #                             'cost' : int(float(row[5])),
+        #                             'priority': row[7]   
+        #                         }
+        #                     )
+        #                     container['free_space'] -= dimensions[0] * dimensions[1] * dimensions[2]
+
+        #     with open(file_path, mode='r') as file:
+        #         csv_reader = csv.reader(file)
+        #         for row in csv_reader:
+        #             if not ' '.join(row).strip():
+        #                 continue
+        #             if row[1] == '-1':
+        #                 package_id = row[0]
+        #                 dimensions = eval(row[3])
+        #                 new_cartons.append(
+        #                     {
+        #                         'id': package_id,
+        #                         'length': dimensions[0],
+        #                         'width': dimensions[1],
+        #                         'height': dimensions[2],
+        #                         'weight': int(float(row[4])),
+        #                         'cost': int(float(row[5])),
+        #                         'priority': row[7]
+        #                     }
+        #                 )
 
         
 
         old_new_cartons = new_cartons
         new_cartons = sorted(new_cartons, key=lambda x: (floor((x['length']*x['width']*x['height'])/100),-x['cost'],min(x['length'],x['width'],x['height']),x['weight']))
-        new_cartons = new_cartons[:packageNum]
+        new_cartons = new_cartons[:]
 
-        if file_path is None:
-            for container in container_assigned:
-                original_solution = []
-                for package in packageArray:
-                    if package.ULD != container:
-                        continue
-                    package.dimensions = package.getDimensions()
-                    original_solution.append({
-                        "carton_id": package.id,
-                        "container_id": package.ULD,
-                        "x": package.position[0],
-                        "y": package.position[1],
-                        "z": package.position[2],
-                        "DimX": package.dimensions[0],
-                        "DimY": package.dimensions[1],
-                        "DimZ": package.dimensions[2],
-                        "weight": package.weight,
-                        "cost": package.cost,
-                        "priority": package.priority
-                    })
-                container_wise_solution[container] = original_solution
+        # if file_path is None:
+        for container in container_assigned:
+            original_solution = []
+            for package in packageArray:
+                if package.ULD != container:
+                    continue
+                package.dimensions = package.getDimensions()
+                original_solution.append({
+                    "carton_id": package.id,
+                    "container_id": package.ULD,
+                    "x": package.position[0],
+                    "y": package.position[1],
+                    "z": package.position[2],
+                    "DimX": package.dimensions[0],
+                    "DimY": package.dimensions[1],
+                    "DimZ": package.dimensions[2],
+                    "weight": package.weight,
+                    "cost": package.cost,
+                    "priority": package.priority
+                })
+            container_wise_solution[container] = original_solution
 
         # for container in containers:
             # print(container_assigned[container['id']].__len__())
 
+        x=0
+        prev = [-1] * len(new_cartons)
+        ind=0
         for i in new_cartons:
             containers=sorted(containers,key=lambda x: x['free_space'],reverse=True)
             for container in containers:
                 container_assigned[container['id']].append(i)
                 obtained_solution = solver(container_assigned[container['id']], [container], timeout)
                 if obtained_solution:
+                    x+=1
                     extra_fitted_cartons.append(i['id'])
                     container_lists[container['id']].append(i)
                     cost_reduction += i['cost']
@@ -189,7 +197,12 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
                     break
                 else:
                     container_assigned[container['id']].pop()
-        
+
+            prev[ind]=x
+            if(ind>=3 and prev[ind]==prev[ind-3]):
+                break
+            ind+=1
+
         for container_id, packages in container_lists.items():
             print(f"Container {container_id} contains packages: {packages}")
 
@@ -241,5 +254,3 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
         new_solution.append(carton)
 
     return new_solution
-
-
