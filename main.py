@@ -3,9 +3,9 @@ from heuristics.solver2_withSpaceDefrag import Solver2
 from utils.inputGetter import getPackages, getULD
 from utils.cartons import cartons
 from LPP.carton_to_package import sol_to_package
-from utils.containers import containers, containers_specific
+from utils.containers import containers, containers_specific, containers_specific_multiple
 from LPP.model import all_swaps as solver
-from LPP.package_to_carton import get_from_greedy, get_specific_from_greedy
+from LPP.package_to_carton import get_from_greedy, get_specific_from_greedy, get_specific_from_greedy_multi
 from binsearch.binsearch import binsearch
 from utils.lpp_utils import are_cubes_intersecting, is_box_inside_container, plot
 from utils.metrics import metrics, uldPlot
@@ -22,11 +22,22 @@ packages = []
 
 
 def generateOutput(packages):
-    f = open("output.csv", mode="w")
-    outputCSV = csv.writer(f)
-    packages.sort(key=lambda x: (str(x.ULD),list(x.position)))
+    cost = 0
+    packages.sort(key=lambda x: (str(x.ULD), list(x.position)))
+    priority_containers = set()
     for package in packages:
-        outputCSV.writerow([package.id,package.ULD,package.position,package.getDimensions(),package.weight,package.cost,package.rotation,package.priority])
+        if str(package.ULD) == "-1":
+            cost += package.cost
+        elif package.cost > 10000:
+            priority_containers.add(package.ULD)
+    cost += len(priority_containers)*5000
+    f = open(f"{cost}.csv", mode="w")
+    outputCSV = csv.writer(f)
+
+    for package in packages:
+        outputCSV.writerow(
+            [package.id, package.ULD, package.position, package.getDimensions(), package.weight, package.cost,
+             package.rotation, package.priority])
 
 getPackages(packages)
 getULD(ulds)

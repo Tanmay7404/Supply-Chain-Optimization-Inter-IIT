@@ -1,6 +1,3 @@
-import math
-
-
 def get_from_greedy(filename = None, packageArray = None):
     import csv
     from utils.structs import CartonPackage as Package
@@ -166,6 +163,11 @@ def make_carton(package):
         "cost": float(package.cost),
         "container_id": package.ULD
     }
+    if hasattr(package, 'property'):
+        carton['x']= package.position[0]
+        carton['y']= package.position[1]
+        carton['z']= package.position[2]
+
     return carton
 def make_solution(package):
     v = [float(package.dimensions[0]), float(package.dimensions[1]), float(package.dimensions[2])]
@@ -225,29 +227,17 @@ def get_specific_from_greedy( container_id, filename= None, packageArray = None)
     pos = []
     cartons = []
     assigned_solutions = []
-    unassigned_packages= []
-
     for package in packages:
         if package.ULD == "-1" or package.ULD == -1:
-            unassigned_packages.append(package)
-    
-    unassigned_packages.sort(key=lambda x: (x.cost//5, x.weight))
-    unassigned_packages = unassigned_packages[:math.floor((unassigned_packages.__len__())/2.5)]
-
-    for package in unassigned_packages:
-        cartons.append(make_carton(package))
-        pos.append(package)
-
-    for package in packages:
-        if package.ULD == container_id:
             cartons.append(make_carton(package))
             pos.append(package)
-        elif package not in unassigned_packages:
+        elif package.ULD == container_id:
+            cartons.append(make_carton(package))
+            pos.append(package)
+        else:
             assigned_solutions.append(make_solution(package))
         if package.ULD != container_id and package.ULD != "-1":
             continue
-
-    for package in pos:
         for uld in ULDS:
             if uld != container_id:
                 continue
@@ -402,10 +392,44 @@ def get_specific_from_greedy( container_id, filename= None, packageArray = None)
     initial_solution = {'sij': initialsij, 'xi': initialxi, 'yi': initialyi, 'zi': initialzi,
                         'relative_position': initialrelative_position, 'orientation': initialorientation}
     stability_constraints = {'Pcij': Pcij, 'wi': wi, 'wij': wij}
-    # print(initial_solution)
+    print(cartons)
     cartons.sort(key=lambda x: x['id'])
     return initial_solution, cartons, assigned_solutions, stability_constraints
+def get_specific_from_greedy_multi( container_ids, filename= None, packageArray = None):
 
+    import csv
+    from utils.structs import CartonPackage as Package
+    import ast
+    packages = []
+    rem_packages = []
+    specific_packages = []
+    ULDS = ["U1", "U2", "U3", "U4", "U5", "U6"]
+    if filename is None:
+        packages = packageArray
+    else:
+        with open(filename, mode='r') as file:
+            csv_reader = csv.reader(file)
+            for row in csv_reader:
+                if row:
+                    f = 1
+                else:
+                    continue
+                package = Package(row[0], row[1], ast.literal_eval(row[2]), ast.literal_eval(row[3]), row[4], row[5],
+                                row[6])
+                packages.append(package)
+    cartons = []
+    assigned_solutions = []
+    for package in packages:
+        if package.ULD == "-1" or package.ULD == -1:
+            cartons.append(make_carton(package))
+        elif package.ULD in container_ids:
+            cartons.append(make_carton(package))
+        else:
+            assigned_solutions.append(make_solution(package))
+
+    # print(initial_solution)
+    cartons.sort(key=lambda x: x['id'])
+    return cartons, assigned_solutions
 def package_csv_to_sol(filename):
     import csv
     from utils.structs import CartonPackage as Package
