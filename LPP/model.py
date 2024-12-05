@@ -39,11 +39,25 @@ def all_swaps(cartons, containers, init, assigned_solutions, timeout = 600):
     # print(len(assigned_solutions))
     model = gp.Model("3D_Container_Loading_with_Relative_Positioning")
     # model.Params.LogToConsole = 1  # Show optimization logs
-    # model.setParam('TimeLimit', timeout)  # Set time limit to 10 minutes
+    model.setParam('TimeLimit', timeout)  # Set time limit to 10 minutes
     # Define constants
     M = 100000  # Large constant for "big-M" constraints
     cartons, rem = cut_short_rem(cartons, 40)
-    assigned_solutions += rem
+    rem_to_sol = []
+    for obj in rem:
+        cart = {
+            'carton_id': obj['id'],
+            'container_id': -1,
+            'DimX': obj['length'],
+            'DimY': obj['width'],
+            'DimZ': obj['height'],
+            'weight':obj['weight'],
+            'cost': obj['cost'],
+            'Priority': obj['Priority']
+        }
+        rem_to_sol.append(cart)
+
+    assigned_solutions += rem_to_sol
     additional_cost = 0 + sum(carton['cost'] for carton in rem)
     cartons.sort(key=lambda x: x['id'])
     # Decision variables
@@ -293,11 +307,25 @@ def multi_containers_extra(cartons, containers, assigned_solutions, length, time
     M = 100000  # Large constant for "big-M" constraints
     additional_cost = 0
     cartons, rem = cut_short_rem_adding(cartons, length)
+    rem_to_sol = []
+    for obj in rem:
+        cart = {
+            'carton_id': obj['id'],
+            'container_id': -1,
+            'DimX': obj['length'],
+            'DimY': obj['width'],
+            'DimZ': obj['height'],
+            'weight': obj['weight'],
+            'cost': obj['cost'],
+            'Priority': obj['Priority']
+        }
+        rem_to_sol.append(cart)
+
+    assigned_solutions += rem_to_sol
+    cartons.sort(key=lambda x: x['id'])
     for carton in rem:
         if carton['container_id'] == "-1" or carton['container_id'] == -1:
             additional_cost += carton['cost']
-
-    assigned_solutions += rem
     new_cost = additional_cost
 
     # Decision variables
@@ -715,6 +743,85 @@ def with_stability(cartons, containers, init, assigned_solutions, stability_cons
 
     # add MIP here
     initcost = 0
+    # sij[('P-10', 'U6')].Start = 1
+    # sij[('P-100', 'U6')] = 1
+    # xi['P-10'].Start = 0
+    # yi['P-10'].Start = 0
+    # zi['P-10'].Start = 0
+    # xi['P-100'].Start = 0
+    # yi['P-100'].Start = 0
+    # zi['P-100'].Start = 88
+    # orientation['P-10']['lx'].Start = 1
+    # orientation['P-10']['wx'].Start = 0
+    # orientation['P-10']['hx'].Start = 0
+    # orientation['P-10']['ly'].Start = 0
+    # orientation['P-10']['wy'].Start = 1
+    # orientation['P-10']['hy'].Start = 0
+    # orientation['P-10']['lz'].Start = 0
+    # orientation['P-10']['wz'].Start = 0
+    # orientation['P-10']['hz'].Start = 1
+    # orientation['P-100']['lx'].Start = 1
+    # orientation['P-100']['wx'].Start = 0
+    # orientation['P-100']['hx'].Start = 0
+    # orientation['P-100']['ly'].Start = 0
+    # orientation['P-100']['wy'].Start = 1
+    # orientation['P-100']['hy'].Start = 0
+    # orientation['P-100']['lz'].Start = 0
+    # orientation['P-100']['wz'].Start = 0
+    # orientation['P-100']['hz'].Start = 1
+    # relative_position[('P-10', 'P-100')]['aik'].Start = 0
+    # relative_position[('P-10', 'P-100')]['bik'].Start = 0
+    # relative_position[('P-10', 'P-100')]['cik'].Start = 0
+    # relative_position[('P-10', 'P-100')]['dik'].Start = 0
+    # relative_position[('P-10', 'P-100')]['eik'].Start = 1
+    # relative_position[('P-10', 'P-100')]['fik'].Start = 0
+    # wij[('P-10','P-100')].Start = 0
+    # wij[('P-100','P-10')].Start = 1
+    # wi['P-10'].Start = 1
+    # wi['P-100'].Start = 0
+    # Pcij[('P-10', 'P-100', 'U6')].Start = 1
+    # Pcij[('P-100', 'P-10', 'U6')].Start = 1
+
+
+
+    # print(init)
+    # for carton in cartons:
+    #     if sum(init['sij'][carton['id'], container['id']] for container in containers) == 0:
+    #         print(carton['id'])
+    #         initcost += carton['cost']
+    # print("initCost")
+    # print(initcost)
+    # for (carton1_id, carton2_id), value in stability_constraints['wij'].items():
+    #     wij[(carton1_id, carton2_id)].Start = value
+    #     print(carton1_id, carton2_id, value)
+    # for (carton1_id, carton2_id, container_id), value in stability_constraints['Pcij'].items():
+    #     Pcij[(carton1_id, carton2_id, container_id)].Start = value
+    #     print(carton1_id, carton2_id, container_id, value)
+    #
+    # for carton_id, value in stability_constraints['wi'].items():
+    #     wi[carton_id].Start = value
+    #     print(carton_id, value)
+    #
+    # for (carton_id, container_id), value in init['sij'].items():
+    #     sij[(carton_id, container_id)].Start = value
+    # for carton_id, value in init['xi'].items():
+    #     xi[carton_id].Start = value
+    # for carton_id, value in init['yi'].items():
+    #     yi[carton_id].Start = value
+    # for carton_id, value in init['zi'].items():
+    #     zi[carton_id].Start = value
+    # for carton_id, orientations in init['orientation'].items():
+    #     for orient, value in orientations.items():
+    #         orientation[carton_id][orient].Start = value
+    # for i in range(len(cartons)):
+    #     for k in range(i + 1, len(cartons)):
+    #         carton_i = cartons[i]
+    #         carton_k = cartons[k]
+    #         for orient, value in init['relative_position'][(carton_i['id'], carton_k['id'])].items():
+    #             relative_position[(carton_i['id'], carton_k['id'])][orient].Start = value
+
+    # x = 5000 * sum(max(sij[(carton['id'], container['id'])] * carton['priority'] for carton in cartons) for container in containers)
+
     penalty = sum(
         (1 - (sum(sij[(carton['id'], container['id'])] for container in containers))) * carton['cost'] for carton in
         cartons)
