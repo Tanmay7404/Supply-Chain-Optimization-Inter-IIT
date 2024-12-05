@@ -35,6 +35,7 @@ def run_all(ulds, packages):
     solver2 = Solver2(packages,ulds)
     solver2.solve()
 
+    updatePackages(packages,packages,ulds)
     generateOutput(packages)
 
     metrics(packages,ulds,k)
@@ -46,12 +47,10 @@ def run_all(ulds, packages):
     newPackages = sol_to_package(binsearchSolution)
 
 
-
     updatePackages(packages,newPackages,ulds)  
     generateOutput(packages)
 
     metrics(packages,ulds,k)
-    # uldPlot(ulds)
     solution = binsearchSolution
 
     for uld in reversed(ulds[5:]):
@@ -73,3 +72,5 @@ def run_all(ulds, packages):
     metrics(packages,ulds,k)
     # uldPlot(ulds)
     # package array plot here
+
+run_all(ulds, packages)

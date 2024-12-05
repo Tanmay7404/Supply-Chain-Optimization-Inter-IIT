@@ -58,7 +58,7 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
         if file_path is None:
             for package in packageArray:
                 package.dimensions = package.getDimensions()
-                package.dimensions.sort()
+                # package.dimensions.sort()
                 if (package.ULD == -1):
                     new_package = {
                             'id': package.id,
