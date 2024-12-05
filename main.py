@@ -72,5 +72,3 @@ def run_all(ulds, packages):
     metrics(packages,ulds,k)
     # uldPlot(ulds)
     # package array plot here
-
-run_all(ulds, packages)
