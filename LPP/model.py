@@ -34,12 +34,12 @@ def cut_short_rem_adding(cartons, length):
     print(ass)
     return ass, rem
 def all_swaps(cartons, containers, init, assigned_solutions, timeout = 600):
-    # print(containers)
-    # print(len(cartons))
+    print(containers)
+    print(len(cartons))
     # print(len(assigned_solutions))
     model = gp.Model("3D_Container_Loading_with_Relative_Positioning")
     # model.Params.LogToConsole = 1  # Show optimization logs
-    model.setParam('TimeLimit', timeout)  # Set time limit to 10 minutes
+    # model.setParam('TimeLimit', timeout)  # Set time limit to 10 minutes
     # Define constants
     M = 100000  # Large constant for "big-M" constraints
     cartons, rem = cut_short_rem(cartons, 40)
@@ -326,6 +326,7 @@ def multi_containers_extra(cartons, containers, assigned_solutions, length, time
     for carton in rem:
         if carton['container_id'] == "-1" or carton['container_id'] == -1:
             additional_cost += carton['cost']
+
     new_cost = additional_cost
 
     # Decision variables
@@ -462,7 +463,7 @@ def multi_containers_extra(cartons, containers, assigned_solutions, length, time
                     carton_i['id']] + (1 - rel["fik"]) * M, name=f"no_overlap_z_f_{carton_i['id']}_{carton_k['id']}")
     model.optimize()
     # Extract the solution
-    if model.status == GRB.OPTIMAL or model.status == GRB.INTERRUPTED or model.status == GRB.SUBOPTIMAL:
+    if model.status == GRB.OPTIMAL or model.status == GRB.SUBOPTIMAL:
         print("Optimal solution found. Checking constraints:")
         model.printQuality()
         solution = []

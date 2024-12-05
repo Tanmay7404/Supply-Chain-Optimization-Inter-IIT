@@ -163,11 +163,6 @@ def make_carton(package):
         "cost": float(package.cost),
         "container_id": package.ULD
     }
-    if hasattr(package, 'property'):
-        carton['x']= package.position[0]
-        carton['y']= package.position[1]
-        carton['z']= package.position[2]
-
     return carton
 def make_solution(package):
     v = [float(package.dimensions[0]), float(package.dimensions[1]), float(package.dimensions[2])]
@@ -175,7 +170,6 @@ def make_solution(package):
     y = float(package.position[1])
     z = float(package.position[2])
     container_id = package.ULD
-    # v.sort()
     carton = {
         "carton_id": package.id,
         "x": x,
@@ -197,7 +191,7 @@ def are_base_area_intersecting(package1, package2):
     if package1.position[1] + package1.dimensions[1] <= package2.position[1] or package2.position[1] + package2.dimensions[1] <= package1.position[1]:
         return False
     return True
-def get_specific_from_greedy( container_id, filename= None, packageArray = None):
+def get_specific_from_greedy( container_ids, filename= None, packageArray = None):
 
     import csv
     from utils.structs import CartonPackage as Package
@@ -231,15 +225,15 @@ def get_specific_from_greedy( container_id, filename= None, packageArray = None)
         if package.ULD == "-1" or package.ULD == -1:
             cartons.append(make_carton(package))
             pos.append(package)
-        elif package.ULD == container_id:
+        elif package.ULD in container_ids:
             cartons.append(make_carton(package))
             pos.append(package)
         else:
             assigned_solutions.append(make_solution(package))
-        if package.ULD != container_id and package.ULD != "-1":
+        if package.ULD not in container_ids and package.ULD != "-1":
             continue
         for uld in ULDS:
-            if uld != container_id:
+            if uld not in container_ids:
                 continue
             initialsij[(package.id, uld)] = 0
             if package.ULD == uld:
@@ -249,18 +243,18 @@ def get_specific_from_greedy( container_id, filename= None, packageArray = None)
     initialyi = {}
     initialzi = {}
 
-
-    for package1 in pos:
-        for package2 in pos:
-            if package1.id == package2.id:
-                continue
-            Pcij[(package1.id, package2.id, container_id)] = 0
-            wij[(package1.id, package2.id)] = 0
-            if package1.ULD != package2.ULD or package1.ULD != container_id:
-                continue
-            Pcij[(package1.id, package2.id, container_id)] = 1
-            if are_base_area_intersecting(package1, package2) and package1.position[2] == package2.position[2] + package2.dimensions[2]:
-                    wij[(package1.id, package2.id)] = 1
+    for container_id in container_ids:
+        for package1 in pos:
+            for package2 in pos:
+                if package1.id == package2.id:
+                    continue
+                Pcij[(package1.id, package2.id, container_id)] = 0
+                wij[(package1.id, package2.id)] = 0
+                if package1.ULD != package2.ULD or package1.ULD != container_id:
+                    continue
+                Pcij[(package1.id, package2.id, container_id)] = 1
+                if are_base_area_intersecting(package1, package2) and package1.position[2] == package2.position[2] + package2.dimensions[2]:
+                        wij[(package1.id, package2.id)] = 1
 
 
     for package in pos:
@@ -281,7 +275,7 @@ def get_specific_from_greedy( container_id, filename= None, packageArray = None)
             if package.id >= other_package.id:
                 continue
             dict = {}
-            if package.ULD != other_package.ULD or package.ULD != container_id:
+            if package.ULD != other_package.ULD:
                 dict["aik"] = 0
                 dict["bik"] = 0
                 dict["cik"] = 0
