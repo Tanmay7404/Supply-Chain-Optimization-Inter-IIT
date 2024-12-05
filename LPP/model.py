@@ -1248,7 +1248,8 @@ def complete_LPP(cartons, containers, init):
                 orientation[carton_k['id']]["wz"] + carton_k['height'] * orientation[carton_k['id']]["hz"] <= zi[
                     carton_i['id']] + (1 - rel["fik"]) * M, name=f"no_overlap_z_f_{carton_i['id']}_{carton_k['id']}")
     temp = 0
-    init = get_from_greedy()
+    # init = get_from_greedy()
+    #MIP
     for (carton_id, container_id), value in init['sij'].items():
         sij[(carton_id, container_id)].Start = value
     for carton_id, value in init['xi'].items():
