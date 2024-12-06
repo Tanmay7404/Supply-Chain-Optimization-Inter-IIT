@@ -11,7 +11,7 @@ from utils.lpp_utils import are_cubes_intersecting, is_box_inside_container, plo
 from utils.metrics import metrics, uldPlot
 from utils.updatePackages import updatePackages
 import sys
-
+import time
 
 
 
@@ -51,9 +51,10 @@ def run_all(ulds, packages,timeout = 60, k = 5000):
     cartonss = cartons()
     containerss = containers()
 
-
-    binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=10)
+    starttime = time.time()
+    binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=45)
     newPackages = sol_to_package(binsearchSolution)
+    print("Binsearch took time:", time.time()-starttime)
 
 
     updatePackages(packages,newPackages,ulds)  
@@ -63,10 +64,10 @@ def run_all(ulds, packages,timeout = 60, k = 5000):
     uldPlot(ulds)
     solution = []
 
-    for uld in reversed(ulds[5:]):
+    for uld in reversed(ulds[4:]):
         init,cartonss,assigned_solutions,_ = get_specific_from_greedy(uld.id,packageArray=packages)
         containerss = containers_specific(uld.id)
-        solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=100)
+        solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=600)
         temp = sol_to_package(solution)
         updatePackages(packages,temp,ulds)
 

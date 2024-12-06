@@ -39,7 +39,7 @@ def all_swaps(cartons, containers, init, assigned_solutions, timeout = 600):
     # print(len(assigned_solutions))
     model = gp.Model("3D_Container_Loading_with_Relative_Positioning")
     # model.Params.LogToConsole = 1  # Show optimization logs
-    # model.setParam('TimeLimit', timeout)  # Set time limit to 10 minutes
+    model.setParam('TimeLimit', timeout)  # Set time limit to 10 minutes
     # Define constants
     M = 100000  # Large constant for "big-M" constraints
     cartons, rem = cut_short_rem(cartons, 40)

@@ -41,21 +41,16 @@ class Solver2:
     # def sortULDs(self):
     #     self.ulds.sort(key=lambda x: x.getWeight(), reverse=True)
 
-    permuationsAll = [[4,5,6,1,2,3],[4,5,6,2,3,1],[4,5,6,3,1,2],[4,5,6,1,3,2],[4,5,6,2,1,3],[4,5,6,3,2,1],
-                      [4,6,5,1,2,3],[4,6,5,2,3,1],[4,6,5,3,1,2],[4,6,5,1,3,2],[4,6,5,2,1,3],[4,6,5,3,2,1],
-                      [5,4,6,1,2,3],[5,4,6,2,3,1],[5,4,6,3,1,2],[5,4,6,1,3,2],[5,4,6,2,1,3],[5,4,6,3,2,1],    
-                      [5,6,4,1,2,3],[5,6,4,2,3,1],[5,6,4,3,1,2],[5,6,4,1,3,2],[5,6,4,2,1,3],[5,6,4,3,2,1],
-                      [6,4,5,1,2,3],[6,4,5,2,3,1],[6,4,5,3,1,2],[6,4,5,1,3,2],[6,4,5,2,1,3],[6,4,5,3,2,1],
-                      [6,5,4,1,2,3],[6,5,4,2,3,1],[6,5,4,3,1,2],[6,5,4,1,3,2],[6,5,4,2,1,3],[6,5,4,3,2,1],
-                      [5,6,3,4,1,2]]                      
+    permuationsAll = [[5,4,6,2,3,1]]                      
 
     def sortULDs(self,permutation):
         currPermutation=self.permuationsAll[permutation]
        
-        mapuldtoperm = {"U4": currPermutation[0], "U5": currPermutation[1], "U6": currPermutation[2], "U1": currPermutation[3], "U2": currPermutation[4], "U3": currPermutation[5]}   
-        #print(self.ulds)
-
-        self.ulds.sort(key=lambda x: mapuldtoperm[x.id], reverse=True)
+        if(len(self.ulds)==6):
+            mapuldtoperm = {"U4": currPermutation[0], "U5": currPermutation[1], "U6": currPermutation[2], "U1": currPermutation[3], "U2": currPermutation[4], "U3": currPermutation[5]}  
+            self.ulds.sort(key=lambda x: mapuldtoperm[x.id], reverse=True)
+        else:
+            self.ulds.sort(key=lambda x: x.getVolume(), reverse=True)
 
     def fitPackages(self, packages, uld, corners, isassigning = 0):# P : this is fitpackagePriority
         takenPackages = []
@@ -171,7 +166,8 @@ class Solver2:
     def solve(self):
 
         self.sortPackagesAssignment(self.packages)
-        self.sortULDs(13)
+        
+        self.sortULDs(0)
 
         self.assignPackagesPriority()
 
