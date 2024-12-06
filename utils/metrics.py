@@ -48,6 +48,18 @@ def uldPlot(ulds):
     plt.show()
 
 
+def calculateCost(packages, ulds, k):
+    cost = 0
+    for package in packages:
+        if str(package.ULD) == '-1': cost+=package.cost
+    # print("Cost without accounting for priority uld (k) = ", cost)
+    for uld in ulds:
+        if uld.isPriority: cost+=k
+    
+    # print(" Total Cost = ", cost)
+    return cost
+
+
 
 def metrics(packages, ulds,k):
 

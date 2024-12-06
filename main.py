@@ -117,6 +117,11 @@ def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
 
     # generateOutput(packages)
     cost = metrics(packages,ulds,k)
+    oldCost = 10000000000
+    while cost != oldCost:
+        oldCost = cost
+        updatePackages(packages,packages,ulds)
+        cost = metrics(packages,ulds,k)
     return cost
     # uldPlot(ulds)
     # package array plot here

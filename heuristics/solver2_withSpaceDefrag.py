@@ -1,6 +1,8 @@
 import math
 
+from utils.metrics import calculateCost
 from utils.structs import Axis
+from utils.updatePackages import updatePackages
 
 class Solver2:
     def __init__(self, packages, ulds):
@@ -199,6 +201,14 @@ class Solver2:
                 for axis in Axis.ALL:
                     if uld.project(package,axis) != -1:
                         package.position[axis] = uld.project(package,axis)
+
+        cost = calculateCost(self.packages,self.ulds,5000)
+        oldCost = 10000000000
+        while cost != oldCost:
+            oldCost = cost
+            updatePackages(self.packages,self.packages,self.ulds)
+            cost = calculateCost(self.packages,self.ulds,5000)
+            print(cost,oldCost)
 
 
         # self.ulds[0].plotULD()
