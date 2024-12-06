@@ -24,7 +24,7 @@ def uldPlot(ulds):
 
         return v, e, f
 
-    fig = plt.figure(figsize=(15, 15))
+    fig = plt.figure(figsize=(10, 10))
     idx = 0
     for uld in ulds:
         ax = fig.add_subplot(math.ceil(len(ulds) / 3), 3, idx + 1, projection='3d')
@@ -85,3 +85,4 @@ def metrics(packages, ulds,k):
         if uld.isPriority: cost+=k
     
     print(" Total Cost = ", cost)
+    return cost
