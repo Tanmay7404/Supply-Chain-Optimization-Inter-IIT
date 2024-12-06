@@ -275,7 +275,7 @@ def get_specific_from_greedy( container_ids, filename= None, packageArray = None
             if package.id >= other_package.id:
                 continue
             dict = {}
-            if package.ULD != other_package.ULD:
+            if package.ULD != other_package.ULD or str(package.ULD) == -1:
                 dict["aik"] = 0
                 dict["bik"] = 0
                 dict["cik"] = 0

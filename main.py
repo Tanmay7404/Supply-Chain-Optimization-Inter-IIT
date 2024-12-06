@@ -64,7 +64,7 @@ def generateFinalOutput(packages):
         outputCSV.writerow(
             [package.id, uld, corner[0], corner[1], corner[2], othercorner[0], othercorner[1], othercorner[2]])
 
-def run_all(ulds, packages,timeout = 6000, stabilityThreshold = 0.5, k = 5000):
+def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
 
     #from timeout, choose 4 parameters, time for 1st MIP, time for 2nd MIP, number of cartons in 1st MIP, number of ULDs in 2nd MIP
     #timeout = t1*6*c1 + t2*u2
@@ -79,9 +79,15 @@ def run_all(ulds, packages,timeout = 6000, stabilityThreshold = 0.5, k = 5000):
     cartonss = cartons()
     containerss = containers()
 
-    time_split_1 = min(600,timeout)
+    time_split_1 = min(1500,timeout/2)
+    if time_split_1 < 450:
+        bin_timeout = 15
+    elif time_split_1 < 900:
+        bin_timeout = 20
+    else:
+        bin_timeout = 30
     if time_split_1 > 0:
-        binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=1, time_split_1=time_split_1)
+        binsearchSolution = binsearch(packageArray=packages, uldArray=ulds,timeout=bin_timeout, time_split_1=time_split_1)
         newPackages = sol_to_package(binsearchSolution)
 
 
@@ -95,7 +101,7 @@ def run_all(ulds, packages,timeout = 6000, stabilityThreshold = 0.5, k = 5000):
     # ulds.sort(key=lambda x: (sum(p.cost for p in x.packages))**2*(sum(p.length*p.width*p.height for p in x.packages)))
     if time_split_2 > 2:
         for uld in reversed(ulds[4:]):
-            init,cartonss,assigned_solutions,_ = get_specific_from_greedy(ulds,packageArray=packages)
+            init,cartonss,assigned_solutions,_ = get_specific_from_greedy(uld.id,packageArray=packages)
             containerss = containers_specific(uld.id)
             solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=time_split_2//2)
             temp = sol_to_package(solution)
@@ -118,7 +124,7 @@ def run_all(ulds, packages,timeout = 6000, stabilityThreshold = 0.5, k = 5000):
 
 
 if __name__ == "__main__":
-    timeout = 60
+    timeout = 300
     if len(sys.argv) > 2:
         print("Usage: python main.py <timeout>")
         sys.exit(1)
