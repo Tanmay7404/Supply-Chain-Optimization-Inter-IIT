@@ -16,8 +16,10 @@ def updatePackages(packages,newPackages,ulds):
 
 
     for uld in ulds:
-        uld.packages = [package for package in uld.packages if package.ULD == uld.id]
-        for package in uld.packages:
-            for axis in Axis.ALL:
-                if uld.project(package,axis) != -1:
-                    package.position[axis] = uld.project(package,axis)
+        newpackages = [package for package in uld.packages if package.ULD == uld.id]
+        uld.packages = newpackages
+        for axis in Axis.ALL:
+            uld.packages.sort(key=lambda x: x.position[axis])
+            for package in uld.packages:
+                if uld.projectFinal(package,axis) != -1:
+                    package.position[axis] = uld.projectFinal(package,axis)

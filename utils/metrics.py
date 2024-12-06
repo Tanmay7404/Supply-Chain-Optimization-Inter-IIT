@@ -62,14 +62,11 @@ def metrics(packages, ulds,k):
     for package in packages:
         packagesTotal+=1
         if str(package.ULD) != '-1': packagesTotalTaken+=1
-        if str(package.ULD) != '-1': packagesTotalTaken+=1
         if package.priority == "Priority":
             packagesPriority+=1
             if str(package.ULD) != '-1': packagesPriorityTaken+=1
-            if str(package.ULD) != '-1': packagesPriorityTaken+=1
         else:
             packagesEconomy+=1
-            if str(package.ULD) != '-1': packagesEconomyTaken+=1
             if str(package.ULD) != '-1': packagesEconomyTaken+=1
 
     print("{0} out of {1} packages taken".format(packagesTotalTaken,packagesTotal))
@@ -88,72 +85,3 @@ def metrics(packages, ulds,k):
         if uld.isPriority: cost+=k
     
     print(" Total Cost = ", cost)
-
-def metrics_cost(packages, ulds,k = 5000):
-
-    cost = 0
-    for package in packages:
-        if package.ULD == -1: cost+=package.cost
-    for uld in ulds:
-        if uld.isPriority: cost+=k
-    
-    return cost
-
-
-test_metrics = []
-
-def metrics_test(ulds,packages,k=5000):
-    freeSpace = 0
-    totalSpace = 0
-    freeWeight = 0
-    totalWeight = 0
-    metrics = []
-    for uld in ulds:
-        uldfreeSpace = uld.getVolume()
-        uldtotalSpace = uld.getVolume()
-        totalSpace+=uld.getVolume()
-        freeSpace+=uld.getVolume()
-        totalWeight+=uld.weight_limit
-        freeWeight+=uld.weight_limit
-        uldfreeWeight = uld.weight_limit
-        uldtotalWeight = uld.weight_limit
-        for package in uld.packages:
-            uldfreeSpace-=package.getVolume()
-            freeSpace-=package.getVolume()
-            uldfreeWeight-=package.weight
-            freeWeight-=package.weight
-        metrics.extend([uldfreeSpace/uldtotalSpace*100,uldfreeWeight/uldtotalWeight*100])
-        
-    metrics.extend([freeSpace/totalSpace*100,freeWeight/totalWeight*100])
-
-
-
-    cost = 0
-    for package in packages:
-        if package.ULD == -1: cost+=package.cost
-    for uld in ulds:
-        if uld.isPriority: cost+=k
-    metrics.append(cost)
-    test_metrics.append(metrics)
-
-
-def metrics_test_print(file_name):
-    import pandas as pd
-    columns = []
-    uc = 0
-    for i in range((len(test_metrics[0])-3)//2):
-        columns.append(f'ULD {i+1} Free Space (%)')
-        columns.append(f'ULD {i+1} Free Weight (%)')
-        uc+=1
-
-    columns.extend(["Total Free Space (%)", "Total Free Weight (%)", "Total Cost"])
-    df = pd.DataFrame(test_metrics, columns=columns)
-    
-    # Calculate the average of each column
-    avg_row = df.mean()
-    avg_row.name = 'Average'
-    df = df._append(avg_row)
-    
-    print(df)
-    
-    df.to_csv(file_name+'.csv', index=False)

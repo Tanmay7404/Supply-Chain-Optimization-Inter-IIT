@@ -395,6 +395,20 @@ class ULD:
                 if (getOverlap(packageRectangle,otherPackageRectangle) > 0):
                     maxxx = max(maxxx,otherPackage.position[axis]+otherPackageDimensions[axis])
         return maxxx    
+    
+    def projectFinal(self, package, axis = Axis.HEIGHT):
+        maxxx = 0
+        axis1 = (axis+1)%3
+        axis2 = (axis+2)%3
+        packageDimensions = package.getDimensions()
+        packageRectangle = [package.position[axis1],package.position[axis2],package.position[axis1]+packageDimensions[axis1],package.position[axis2]+packageDimensions[axis2]]
+        for otherPackage in self.packages:
+            otherPackageDimensions = otherPackage.getDimensions()
+            otherPackageRectangle = [otherPackage.position[axis1],otherPackage.position[axis2],otherPackage.position[axis1]+otherPackageDimensions[axis1],otherPackage.position[axis2]+otherPackageDimensions[axis2]]
+            if (package.position[axis] >= otherPackage.position[axis]+ otherPackageDimensions[axis]):
+                if (getOverlap(packageRectangle,otherPackageRectangle) > 0):
+                    maxxx = max(maxxx,otherPackage.position[axis]+otherPackageDimensions[axis])
+        return maxxx    
 
     def checkStability(self, minOverlapReq = 0.5, unstableAllowed = 0):    
         numUnstable = 0
@@ -405,6 +419,10 @@ class ULD:
                 if package == otherPackage: continue
                 if package.isIntersecting(otherPackage):
                     print("Package ",package.id," is intersecting with ",otherPackage.id)
+                    print("Coordinates ",package.position)
+                    print("Dimensions ",package.getDimensions())
+                    print("Coordinates ",otherPackage.position)
+                    print("Dimensions ",otherPackage.getDimensions())
                     
 
         for package in self.packages:
