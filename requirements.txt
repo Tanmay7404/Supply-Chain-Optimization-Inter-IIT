@@ -1,0 +1,8 @@
+gurobipy
+streamlit>=1.40.2
+pandas
+numpy
+matplotlib
+plotly
+mpl_toolkits
+colorsys
