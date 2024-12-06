@@ -18,6 +18,22 @@ def updatePackages(packages,newPackages,ulds):
     for uld in ulds:
         newpackages = [package for package in uld.packages if package.ULD == uld.id]
         uld.packages = newpackages
+
+    for unpacked_package in packages:
+        if str(unpacked_package.ULD) == '-1':
+            done = False
+            for jj in range(6):
+                ulds[jj].calculatePushLimit()
+                for poss_replace in ulds[jj].packages:
+                    if(ulds[jj].inflate_and_replace(unpacked_package,poss_replace)):
+                       
+                        done = True
+                        break
+                if done:
+                    break   
+
+
+    for uld in ulds:
         for axis in Axis.ALL:
             uld.packages.sort(key=lambda x: x.position[axis])
             for package in uld.packages:
