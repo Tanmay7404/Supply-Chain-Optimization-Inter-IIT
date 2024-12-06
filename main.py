@@ -8,7 +8,7 @@ from LPP.model import all_swaps as solver, complete_LPP
 from LPP.package_to_carton import get_from_greedy, get_specific_from_greedy, get_specific_from_greedy_multi, package_csv_to_sol
 from binsearch.binsearch import binsearch
 from utils.lpp_utils import are_cubes_intersecting, is_box_inside_container, plot
-from utils.metrics import metrics, uldPlot
+from utils.metrics import calculateCost, metrics, uldPlot
 from utils.updatePackages import updatePackages
 import sys
 import time
@@ -80,9 +80,7 @@ def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
     containerss = containers()
 
     time_split_1 = min(1500,timeout/2)
-    if time_split_1 < 450:
-        bin_timeout = 15
-    elif time_split_1 < 900:
+    if time_split_1 < 900:
         bin_timeout = 20
     else:
         bin_timeout = 30
@@ -98,6 +96,13 @@ def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
         # uldPlot(ulds)
     solution = []
     time_split_2 = timeout - time_split_1
+    cost = calculateCost(packages,ulds,5000)
+    oldCost = 10000000000
+    while cost != oldCost:
+        oldCost = cost
+        updatePackages(packages,packages,ulds)
+        cost = calculateCost(packages,ulds,5000)
+        print(cost,oldCost)
     # ulds.sort(key=lambda x: (sum(p.cost for p in x.packages))**2*(sum(p.length*p.width*p.height for p in x.packages)))
     if time_split_2 > 2:
         for uld in reversed(ulds[4:]):
@@ -116,12 +121,13 @@ def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
 
 
     # generateOutput(packages)
-    cost = metrics(packages,ulds,k)
+    cost = calculateCost(packages,ulds,5000)
     oldCost = 10000000000
     while cost != oldCost:
         oldCost = cost
         updatePackages(packages,packages,ulds)
-        cost = metrics(packages,ulds,k)
+        cost = calculateCost(packages,ulds,5000)
+        print(cost,oldCost)
     return cost
     # uldPlot(ulds)
     # package array plot here
