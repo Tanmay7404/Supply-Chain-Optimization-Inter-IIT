@@ -23,11 +23,11 @@ def main_page():
         if st.button("Proceed"):
             if input_mode == "Upload File":
                 st.session_state.page = "upload_file"
-                # st.experimental_rerun()
+                st.rerun()
             elif input_mode == "Manual Input":
                 st.session_state.page = "manual_input"
-                # st.experimental_rerun()
-    st.caption("Double click to proceed")
+                st.rerun()
+    
 
 
 def main():

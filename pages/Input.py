@@ -25,8 +25,8 @@ def page():
     # Add a button to return to main page
     if st.button("← Back to Main Page",key="back_to_main"):
         st.session_state.page = 'main'
+        st.rerun()
         # st.experimental_rerun()
-    st.caption("Double click to return")
 
         
     # Title and description
@@ -70,11 +70,13 @@ def page():
         st.success("Files uploaded successfully!")
         st.session_state.uld_file = uld_file
         st.session_state.package_file = package_file
-        
+        userTimeout = st.slider("Select runtime", min_value=1, value=20, step = 5)
+        st.session_state.timeout = userTimeout
         # Add a button to proceed to visualization
         if st.button("Proceed to Visualization",key="proceed_to_visualization"):
             st.session_state.page = 'visualization'
-        st.caption("Double click to proceed")
+            st.rerun()
+    
            
     elif uld_file or package_file:
         st.warning("⚠ Please upload both files for processing.")

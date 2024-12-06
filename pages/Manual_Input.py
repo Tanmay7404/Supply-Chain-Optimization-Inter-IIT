@@ -14,8 +14,8 @@ def page():
     # Add a button to return to main page
     if st.button("← Back to Main Page"):
         st.session_state.page = 'main'
-        # st.experimental_rerun()
-    st.caption("Double click to return")
+        st.rerun()
+
 
     # Initialize session state for ULDs and Packages if not exists
     if 'manual_ulds' not in st.session_state:
@@ -72,14 +72,16 @@ def page():
             st.write(f"ID: {pkg.id}, Dimensions: {pkg.length}x{pkg.width}x{pkg.height}")
 
     # Proceed to Visualization
+    userTimeout = st.slider("Select runtime", min_value=1, value=20, step = 5)
+    st.session_state.timeout = userTimeout
     if st.button("Proceed to Visualization",key="proceed_to_visualization"):
         st.session_state.page = 'visualization'
-    st.caption("Double click to proced")
+        st.rerun()
 
     if st.button("Reset"):
         reset_state()
         st.success("Inputs reset successfully!")
-    st.caption("Double click to reset")
+        st.rerun()
 
 if __name__ == "__main__":
     page()

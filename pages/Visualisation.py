@@ -453,8 +453,8 @@ def page():
     # Add a button to return to main page
     if st.button("← Back to Main Page"):
         st.session_state.page = 'main'
-        # st.experimental_rerun()
-    st.caption("Double click to proceed")
+        st.rerun()
+    
     
     # Add a delay placeholder in session state
     if 'delay_placeholder' not in st.session_state:
@@ -465,7 +465,7 @@ def page():
         # File upload method
         ulds, packages = process_file_input()
         # Solve and visualize
-        run_all(ulds, packages)
+        run_all(ulds, packages, st.session_state.timeout)
         #sort by z,x,y
         
         st.subheader("Visualizing ULDs and Packages")
@@ -489,7 +489,7 @@ def page():
             st.metric("Packages Taken", metrics_data['packagesTotalTaken'])
             st.metric("Priority Packages Taken", metrics_data['packagesPriorityTaken'])
             st.metric("Economy Packages Taken", metrics_data['packagesEconomyTaken'])
-            st.metric("Total Cost", f"${metrics_data['cost']}")
+            st.metric("Total Cost", f"{metrics_data['cost']}")
     elif hasattr(st.session_state, 'manual_ulds') and hasattr(st.session_state, 'manual_packages'):
         # Manual input method
         ulds = st.session_state.manual_ulds
@@ -521,7 +521,7 @@ def page():
             st.metric("Packages Taken", metrics_data['packagesTotalTaken'])
             st.metric("Priority Packages Taken", metrics_data['packagesPriorityTaken'])
             st.metric("Economy Packages Taken", metrics_data['packagesEconomyTaken'])
-            st.metric("Total Cost", f"${metrics_data['cost']}")
+            st.metric("Total Cost", f"{metrics_data['cost']}")
     else:
         st.error("No ULDs or Packages found. Please input data first.")
         return
