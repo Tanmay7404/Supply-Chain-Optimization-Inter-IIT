@@ -36,7 +36,7 @@ def generateOutput(packages):
             [package.id, package.ULD, package.position, package.getDimensions(), package.weight, package.cost,
              package.rotation, package.priority])
 
-def run_all(ulds, packages,timeout = 60, k = 5000):
+def run_all(ulds, packages,timeout = 60, stabilityThreshold = 0.5, k = 5000):
 
     #from timeout, choose 4 parameters, time for 1st MIP, time for 2nd MIP, number of cartons in 1st MIP, number of ULDs in 2nd MIP
     #timeout = t1*6*c1 + t2*u2
@@ -63,10 +63,11 @@ def run_all(ulds, packages,timeout = 60, k = 5000):
     metrics(packages,ulds,k)
     uldPlot(ulds)
     solution = []
-
-    for uld in reversed(ulds[4:]):
+    # ulds.sort(key=lambda x: (sum(p.cost for p in x.packages))**2*(sum(p.length*p.width*p.height for p in x.packages)))
+    for uld in reversed(ulds[3:]):
         init,cartonss,assigned_solutions,_ = get_specific_from_greedy(uld.id,packageArray=packages)
         containerss = containers_specific(uld.id)
+        solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=600)
         solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=600)
         temp = sol_to_package(solution)
         updatePackages(packages,temp,ulds)
