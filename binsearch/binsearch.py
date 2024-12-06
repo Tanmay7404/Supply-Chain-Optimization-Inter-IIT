@@ -1,5 +1,6 @@
 import csv
 from math import floor
+import time
 from binsearch.model_binsearch import container_loading_with_relative_constraints as solver
 from utils.lpp_utils import are_cubes_intersecting, is_box_inside_container, plot
 from LPP.carton_to_package import sol_to_package
@@ -24,7 +25,7 @@ def package_csv_to_sol(filename):
 file_path = 'output.csv'
 # get_containers()
 
-def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 30):
+def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 30, time_split_1 = 6000):
 
     def get_more_packages(file_path = None, packageArray = None, uldArray = None):
         new_cartons = []
@@ -168,9 +169,12 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
         x=0
         prev = [-1] * len(new_cartons)
         ind=0
+        # containers=sorted(containers,key=lambda x: x['length']*x['width']*x['height'])
+        counter=0
         for i in new_cartons:
-            containers=sorted(containers,key=lambda x: x['free_space'],reverse=True)
+            containers=sorted(containers,key=lambda x: x['free_space'])
             for container in containers:
+                starttime = time.time()
                 container_assigned[container['id']].append(i)
                 obtained_solution = solver(container_assigned[container['id']], [container], timeout)
                 if obtained_solution:
@@ -198,8 +202,10 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
                 else:
                     container_assigned[container['id']].pop()
 
+                counter+=(time.time()-starttime)
+
             prev[ind]=x
-            if(ind>=3 and prev[ind]==prev[ind-3]):
+            if((ind>=3 and prev[ind]==prev[ind-3]) or time_split_1<=counter):
                 break
             ind+=1
 

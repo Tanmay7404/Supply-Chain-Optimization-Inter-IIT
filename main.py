@@ -35,8 +35,36 @@ def generateOutput(packages):
         outputCSV.writerow(
             [package.id, package.ULD, package.position, package.getDimensions(), package.weight, package.cost,
              package.rotation, package.priority])
+    generateFinalOutput(packages)
 
-def run_all(ulds, packages,timeout = 60, stabilityThreshold = 0.5, k = 5000):
+def generateFinalOutput(packages):
+    cost = 0
+    packages.sort(key=lambda x: (str(x.ULD), list(x.position)))
+    priority_containers = set()
+    numPackages = len(packages)
+    for package in packages:
+        if str(package.ULD) == "-1":
+            cost += package.cost
+            numPackages -= 1
+        elif int(package.cost) > 10000:
+            priority_containers.add(package.ULD)
+    cost += len(priority_containers)*5000
+    f = open(f"finalOutput.csv", mode="w", newline='\n')
+    outputCSV = csv.writer(f)
+
+    outputCSV.writerow([int(cost),numPackages,len(priority_containers)])
+    for package in packages:
+        corner = package.position
+        package.getDimensions()
+        othercorner = [package.position[0] + package.dimensions[0], package.position[1] + package.dimensions[1],package.position[2] + package.dimensions[2]]
+        if str(package.ULD) == "-1":
+            corner = [-1,-1,-1]
+            othercorner = [-1,-1,-1]
+        uld = package.ULD if str(package.ULD) != "-1" else 'NONE'
+        outputCSV.writerow(
+            [package.id, uld, corner[0], corner[1], corner[2], othercorner[0], othercorner[1], othercorner[2]])
+
+def run_all(ulds, packages,timeout = 6000, stabilityThreshold = 0.5, k = 5000):
 
     #from timeout, choose 4 parameters, time for 1st MIP, time for 2nd MIP, number of cartons in 1st MIP, number of ULDs in 2nd MIP
     #timeout = t1*6*c1 + t2*u2
@@ -51,37 +79,39 @@ def run_all(ulds, packages,timeout = 60, stabilityThreshold = 0.5, k = 5000):
     cartonss = cartons()
     containerss = containers()
 
-    starttime = time.time()
-    binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=45)
-    newPackages = sol_to_package(binsearchSolution)
-    print("Binsearch took time:", time.time()-starttime)
+    time_split_1 = min(600,timeout)
+    if time_split_1 > 0:
+        binsearchSolution = binsearch(packageArray=packages, uldArray=ulds, timeout=1, time_split_1=time_split_1)
+        newPackages = sol_to_package(binsearchSolution)
 
 
-    updatePackages(packages,newPackages,ulds)  
-    generateOutput(packages)
+        updatePackages(packages,newPackages,ulds)  
+        generateOutput(packages)
 
-    metrics(packages,ulds,k)
-    uldPlot(ulds)
+        metrics(packages,ulds,k)
+        # uldPlot(ulds)
     solution = []
+    time_split_2 = timeout - time_split_1
     # ulds.sort(key=lambda x: (sum(p.cost for p in x.packages))**2*(sum(p.length*p.width*p.height for p in x.packages)))
-    for uld in reversed(ulds[3:]):
-        init,cartonss,assigned_solutions,_ = get_specific_from_greedy(uld.id,packageArray=packages)
-        containerss = containers_specific(uld.id)
-        solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=600)
-        solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=600)
-        temp = sol_to_package(solution)
-        updatePackages(packages,temp,ulds)
+    if time_split_2 > 2:
+        for uld in reversed(ulds[4:]):
+            init,cartonss,assigned_solutions,_ = get_specific_from_greedy(ulds,packageArray=packages)
+            containerss = containers_specific(uld.id)
+            solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=time_split_2//2)
+            temp = sol_to_package(solution)
+            updatePackages(packages,temp,ulds)
 
     generateOutput(sol_to_package(solution))
     finalsol = sol_to_package(solution)
 
 
-    # updatePackages(packages,finalsol,ulds)
+    updatePackages(packages,finalsol,ulds)
         
 
 
     # generateOutput(packages)
-    # metrics(packages,ulds,k)
+    cost = metrics(packages,ulds,k)
+    return cost
     # uldPlot(ulds)
     # package array plot here
 
@@ -101,13 +131,20 @@ if __name__ == "__main__":
     getPackages(packages)
     getULD(ulds)
 
-    # solution = package_csv_to_sol(filename="28487.0.csv")
+    # solution = package_csv_to_sol(filename="28462.csv")
     # newPackages = sol_to_package(solution)
     # updatePackages(packages,newPackages,ulds)
-    # cartonss = cartons()
-    # containerss = containers()
-    # init = get_from_greedy(packageArray=packages)
-    # solution = complete_LPP(cartonss, containerss, init)
+    # metrics(packages,ulds,k)
+    # # cartonss = cartons()
+    # # containerss = containers()
+    # myuld = ulds[0]
+    # for uld in ulds:
+    #     if uld.id == "U3":
+    #         myuld = uld
+    #         break
+    # init,cartonss,assigned_solutions,_ = get_specific_from_greedy([myuld.id],packageArray=packages)
+    # containerss = containers_specific(myuld.id)
+    # solution = solver(cartonss, containerss, init, assigned_solutions,timeout=1000000)
     # temp = sol_to_package(solution)
     # updatePackages(packages,temp,ulds)
     # generateOutput(packages)

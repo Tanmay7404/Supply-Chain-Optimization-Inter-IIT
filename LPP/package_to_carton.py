@@ -230,7 +230,7 @@ def get_specific_from_greedy( container_ids, filename= None, packageArray = None
             pos.append(package)
         else:
             assigned_solutions.append(make_solution(package))
-        if package.ULD not in container_ids and package.ULD != "-1":
+        if str(package.ULD) not in container_ids and str(package.ULD) != "-1":
             continue
         for uld in ULDS:
             if uld not in container_ids:
