@@ -79,11 +79,8 @@ def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
     cartonss = cartons()
     containerss = containers()
 
-    time_split_1 = min(1500,timeout/2)
-    if time_split_1 < 900:
-        bin_timeout = 20
-    else:
-        bin_timeout = 30
+    time_split_1 = min(0,timeout/50)
+    bin_timeout = 0.1
     if time_split_1 > 0:
         binsearchSolution = binsearch(packageArray=packages, uldArray=ulds,timeout=bin_timeout, time_split_1=time_split_1)
         newPackages = sol_to_package(binsearchSolution)
@@ -111,6 +108,13 @@ def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
             solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=time_split_2//2)
             temp = sol_to_package(solution)
             updatePackages(packages,temp,ulds)
+            cost = calculateCost(packages,ulds,5000)
+            oldCost = 10000000000
+            while cost != oldCost:
+                oldCost = cost
+                updatePackages(packages,packages,ulds)
+                cost = calculateCost(packages,ulds,5000)
+                print(cost,oldCost)
 
     generateOutput(sol_to_package(solution))
     finalsol = sol_to_package(solution)
