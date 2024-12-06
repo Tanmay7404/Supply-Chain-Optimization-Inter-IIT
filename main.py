@@ -102,10 +102,20 @@ def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
         print(cost,oldCost)
     # ulds.sort(key=lambda x: (sum(p.cost for p in x.packages))**2*(sum(p.length*p.width*p.height for p in x.packages)))
     if time_split_2 > 2:
-        for uld in reversed(ulds[4:]):
+        num_uld = 2
+        if time_split_2 >= 600:
+            num_uld = 3
+        if time_split_2 >= 1200:
+            num_uld = 4
+        if time_split_2 >= 1800:
+            num_uld = 5
+        if time_split_2 >= 2400:
+            num_uld = 6
+
+        for uld in reversed(ulds[len(ulds)-num_uld:]):
             init,cartonss,assigned_solutions,_ = get_specific_from_greedy(uld.id,packageArray=packages)
             containerss = containers_specific(uld.id)
-            solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=time_split_2//2)
+            solution = solver(cartons=cartonss, containers=containerss, init=init, assigned_solutions=assigned_solutions,timeout=time_split_2//num_uld)
             temp = sol_to_package(solution)
             updatePackages(packages,temp,ulds)
             cost = calculateCost(packages,ulds,5000)
