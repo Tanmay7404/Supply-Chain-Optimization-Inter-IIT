@@ -62,7 +62,7 @@ def run_all(ulds, packages,timeout = 60, stabilityThreshold = 0.5, k = 5000):
     metrics(packages,ulds,k)
     uldPlot(ulds)
     solution = []
-    ulds.sort(key=lambda x: (sum(p.cost for p in x.packages))**2*(sum(p.length*p.width*p.height for p in x.packages)))
+    # ulds.sort(key=lambda x: (sum(p.cost for p in x.packages))**2*(sum(p.length*p.width*p.height for p in x.packages)))
     for uld in reversed(ulds[3:]):
         init,cartonss,assigned_solutions,_ = get_specific_from_greedy(uld.id,packageArray=packages)
         containerss = containers_specific(uld.id)
