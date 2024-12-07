@@ -37,7 +37,7 @@ def updatePackages(packages,newPackages,ulds):
     for unpacked_package in packages:
         if str(unpacked_package.ULD) == '-1':
             done = False
-            for jj in range(6):
+            for jj in range(len(ulds)):
                 ulds[jj].calculatePushLimit()
                 for poss_replace in ulds[jj].packages:
                     if(ulds[jj].inflate_and_replace(unpacked_package,poss_replace,lpp=True)):

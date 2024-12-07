@@ -159,7 +159,7 @@ class Solver2:
             for unpacked_package in self.packages:
                 if str(unpacked_package.ULD) == '-1':
                     done = False
-                    for jj in range(6):
+                    for jj in range(len(self.ulds)):
                         self.ulds[jj].calculatePushLimit()
                         for poss_replace in self.ulds[jj].packages:
                             if(self.ulds[jj].inflate_and_replace(unpacked_package,poss_replace)):
