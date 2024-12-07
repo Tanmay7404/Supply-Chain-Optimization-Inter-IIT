@@ -2,7 +2,7 @@ import gurobipy as gp
 from gurobipy import GRB
 # from utils.cartons import cartons
 # from utils.containers import containers
-from LPP.package_to_carton import get_from_greedy, get_specific_from_greedy
+from MIP1.package_to_carton import get_from_greedy, get_specific_from_greedy
 
 
 # containers = containers_specific(specific_container)
@@ -292,7 +292,7 @@ def all_swaps(cartons, containers, init, assigned_solutions, timeout = 600):
                     "weight": carton['weight'],
                     "cost": carton['cost']
                 })
-        print(solution)
+        # print(solution)
         return solution
     else:
         print("No feasible solution found.")
@@ -1314,7 +1314,7 @@ def complete_LPP(cartons, containers, init):
                         "priority": carton['priority'],
                         "cost": carton['cost']
                     })
-        print(solution)
+        # print(solution)
         return solution
     else:
         print("No feasible solution found.")

@@ -1,10 +1,9 @@
 import csv
 from math import floor
 import time
-from binsearch.model_binsearch import container_loading_with_relative_constraints as solver
-from utils.lpp_utils import are_cubes_intersecting, is_box_inside_container, plot
-from LPP.carton_to_package import sol_to_package
-from LPP.package_to_carton import make_solution
+from MIP2.model_binsearch import container_loading_with_relative_constraints as solver
+from MIP1.carton_to_package import sol_to_package
+from MIP1.package_to_carton import make_solution
 
 def package_csv_to_sol(filename):
     """

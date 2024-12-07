@@ -1,81 +1,93 @@
+# FedEx ULD Optimization  
 
-# FedEx ULD Optimization
+The Unit Load Device (ULD) optimization problem focuses on enhancing operational efficiency, reducing costs, and improving service reliability in logistics networks. ULDs are standardized air shipment containers with strict weight and volume limits, requiring efficient packing to maximize space utilization, minimize costs, and ensure the timely delivery of Priority Packages.
 
+The challenge is to determine which packages to load into which ULDs while adhering to constraints such as weight limits, package dimensions, and the precedence of Priority Packages. Properly optimized ULDs not only reduce costs and ensure efficient resource utilization but also improve delivery timeliness and contribute to environmental sustainability by minimizing fuel consumption and carbon emissions.
 
+## Packing Simulation using Streamlit  
 
-The Unit Load Device (ULD) optimization problem focuses on enhancing operational efficiency,
-reducing costs, and improving service reliability in logistics networks. ULDs are standardized
-air shipment containers with strict weight and volume limits, requiring efficient packing to
-maximize space utilization, minimize costs, and ensure the timely delivery of Priority Packages.
+We have provided a GUI, deployed using `Streamlit`, to display the packing sequence in each ULD, along with the packing visualization.
 
-The challenge is to determine which packages to load into which ULDs while adhering to
-constraints such as weight limits, package dimensions, and the precedence of Priority Packages. Properly optimized ULDs not only reduce costs and ensure efficient resource utilization but
-also improve delivery timeliness and contribute to environmental sustainability by minimizing
-fuel consumption and carbon emissions.
-## Packing Simulation using Streamlit
+## Deployment  
 
-We have provided a GUI, deployed using `Streamlit` to display the packing sequence in each ULD, along with the packing visualization.
-## Deployment
+### Installing the Dependencies  
 
+__Make sure that you have `Python 3.12` installed on your system.__  
 
-### Installing the dependencies
-
-__Make sure that you have `Python 3.12` installed in your system.__
-
-Run the following command in your terminal 
+Run the following command in your terminal:  
 
 ```bash
 pip install -r requirements.txt
-```
+```  
 
-__Ensure that your system has a valid `Gurobi Named-User License` installed.__
+__Ensure that your system has a valid `Gurobi Named-User License` installed.__  
 
+---
 
-### Running the program
+### Running the Program  
 
-Now, to run the script enter the following command in the terminal inside the folder where the repository is cloned
+#### 1. Command-Line Interface  
+
+Run the following command in the repository folder:  
+
+```bash
+python main.py
+```  
+
+For advanced usage, an optional timeout parameter (in seconds) can be added to control the runtime:  
+
+```bash
+python main.py --timeout <seconds>
+```  
+
+#### 2. Streamlit Web Application  
+
+To run the Streamlit app, use one of the following commands in the terminal inside the repository folder:  
 
 ```bash
 streamlit run Streamlit_App.py
-```
+```  
 
-If it does not work, then try
+If the above doesn't work, try:  
 
 ```bash
 python3 -m streamlit run Streamlit_App.py
-```
+```  
 
-If it does not work, then try
+Or:  
 
 ```bash
 python -m streamlit run Streamlit_App.py
-```
-## Streamlit App Usage Guide
+```  
 
-### Main Page
+---
 
-When you first launch the app, you will see the main page with two input options:
+## Streamlit App Usage Guide  
 
-- __Upload File__ : Upload CSV files for ULDs and packages
-- __Manual Input__ : Enter ULD and package data directly into the app
+### Main Page  
 
-### Input Methods
+When you first launch the app, you will see the main page with two input options:  
 
-#### __File Input Method :__
+- __Upload File__: Upload CSV files for ULDs and packages.  
+- __Manual Input__: Enter ULD and package data directly into the app.  
 
-Prepare two CSV files : 
+### Input Methods  
 
-- __ULDs__ : It must have the data of the ULDs with columns respectively as ULD_id, length, width, height and weight_limit.
-- __Packages__ : It must have the data of the packages respectively as Package_id, length, width, height, weight, package_type and penalty(for economy(enter a '-' for priority)).
+#### __File Input Method__:  
 
-ULDs CSV format example :
+Prepare two CSV files:  
+
+- **ULDs**: Contains ULD data with columns: ULD_id, length, width, height, and weight_limit.  
+- **Packages**: Contains package data with columns: Package_id, length, width, height, weight, package_type, and penalty (for economy packages; enter `-` for priority packages).  
+
+Example ULDs CSV:  
 
 ```csv
 U1, 100, 100, 100, 2500
 U2, 100, 150, 125, 3000
-```
+```  
 
-Packages CSV format example :
+Example Packages CSV:  
 
 ```csv
 P1, 99, 53, 55, 61, Economy, 176
@@ -83,87 +95,82 @@ P2, 56, 99, 81, 53, Priority, -
 P3, 42, 101, 51, 17, Priority, -
 P4, 108, 75, 56, 73, Economy, 138
 P5, 88, 58, 64, 93, Economy, 139
-```
+```  
 
-#### __Manual Input Method :__
+#### __Manual Input Method__:  
 
-Manually enter details for :
+Manually enter details for:  
 
-- __ULDs__ : ULD_id, length, width, height, weight_limit
-- __Packages__ : Package_id, length, width, height, weight, package_type, penalty(for economy(enter a '-' for priority))
+- **ULDs**: ULD_id, length, width, height, weight_limit.  
+- **Packages**: Package_id, length, width, height, weight, package_type, penalty (for economy packages; enter `-` for priority packages).  
 
-Click on __Add ULD__ or __Add Package__ everytime we enter data for a particular ULD/package.
+Click on __Add ULD__ or __Add Package__ after entering data for each ULD/package.  
 
-### Visualization
+---
 
-After input, the app will
+### Visualization  
 
-- Solve package placement optimization.
-- Create interactive 3D visualizations of package placement.
-- Display progressive packing sequence.
-- Show detailed metrics such as free space percentage, free weight percentage, total packages, priority vs economy packages packed, total packages taken and total cost of shipment.
-## Solution Pipeline
+After input, the app will:  
 
-### Overview of Optimization Strategy
-The solution pipeline is a multi-stage approach to efficiently pack packages into Unit Load Devices (ULDs), utilizing a combination of heuristic methods and Mixed Integer Programming (MIP) techniques.
+- Solve package placement optimization.  
+- Create interactive 3D visualizations of package placement.  
+- Display progressive packing sequences.  
+- Show detailed metrics, including:  
+  - Free space percentage.  
+  - Free weight percentage.  
+  - Total number of packages.  
+  - Priority vs. economy packages packed.  
+  - Total packages loaded.  
+  - Total cost of shipment.  
 
-### Pipeline Stages
+---
 
-#### 1. Initial Data Preprocessing
-- **Reordering Heuristics**
-  - Reorder ULD and Package data based on custom heuristics
-  - Prepare data for efficient placement strategy
+## Solution Pipeline  
 
-#### 2. Package Classification
-- Separate packages into two categories:
-  - **Priority Packages**: High-importance items
-  - **Economy Packages**: Standard items
+### Overview of Optimization Strategy  
 
-#### 3. Initial Package Assignment
-- **Extreme Points Filling**
-  - Assign packages to ULDs using extreme point placement strategy
-  - Optimize initial spatial utilization
+The solution pipeline employs a multi-stage approach to efficiently pack packages into Unit Load Devices (ULDs), combining heuristic methods and Mixed Integer Programming (MIP) techniques.  
 
-- **Tri-Planar Projection**
-  - Project and analyze package placement along three axes:
-    - X-axis (Length)
-    - Y-axis (Width)
-    - Z-axis (Height)
-  - Ensures comprehensive spatial coverage
+### Pipeline Stages  
 
-#### 4. Space Defragmentation
-- Reorganize package placements to:
-  - Minimize unused spaces
-  - Improve overall ULD space efficiency
+1. **Initial Data Preprocessing**  
+   - Reorder ULD and package data using custom heuristics.  
+   - Prepare data for an efficient placement strategy.  
 
-#### 5. Second Projection and Refinement
-- Repeat tri-planar projection
-- Further optimize package positioning
+2. **Package Classification**  
+   - Separate packages into:  
+     - **Priority Packages**: High-importance items.  
+     - **Economy Packages**: Standard items.  
 
-#### 6. First Mixed Integer Programming (MIP) Stage
-- **Unassigned Package Fitting**
-  - Attempt to fit remaining unassigned packages
-  - Run for a predefined number of iterations
-  - Utilize mathematical optimization techniques
+3. **Initial Package Assignment**  
+   - **Extreme Points Filling**: Assign packages using extreme point placement to optimize spatial utilization.  
+   - **Tri-Planar Projection**: Analyze and optimize placements along three axes (X, Y, Z).  
 
-#### 7. Second MIP Stage
-- **Package Swapping and Optimization**
-  - Focus on unassigned packages
-  - Swap currently assigned packages to create space
-  - Run for additional iterations to maximize placement efficiency
+4. **Space Defragmentation**  
+   - Reorganize package placements to minimize unused space and improve ULD efficiency.  
 
-### Optimization Objectives
-- Maximize ULD space utilization
-- Prioritize critical (priority) packages
-- Minimize transportation costs
-- Reduce number of unused or partially filled ULDs
+5. **Second Projection and Refinement**  
+   - Repeat tri-planar projection for further optimization.  
 
-### Algorithmic Complexity
-- Combines heuristic and mathematical programming approaches
-- Iterative refinement of package placement
-- Handles both priority and economy package constraints
+6. **First Mixed Integer Programming (MIP) Stage**  
+   - Attempt to fit unassigned packages using mathematical optimization.  
+   - Execute for a predefined number of iterations.  
 
-### Potential Future Enhancements
-- More advanced space fragmentation techniques
-- Enhanced MIP formulations
-- Machine learning-based placement predictions
+7. **Second MIP Stage**  
+   - Focus on package swapping and optimizing assignments.  
+   - Run additional iterations to maximize placement efficiency.  
+
+### Optimization Objectives  
+
+- Maximize ULD space utilization.  
+- Prioritize critical (priority) packages.  
+- Minimize transportation costs.  
+- Reduce the number of unused or partially filled ULDs.  
+
+---
+
+### Potential Future Enhancements  
+
+- Advanced space fragmentation techniques.  
+- Enhanced MIP formulations.  
+- Machine learning-based placement predictions.  

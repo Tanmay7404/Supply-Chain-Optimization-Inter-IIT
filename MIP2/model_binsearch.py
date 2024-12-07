@@ -58,9 +58,7 @@ def container_loading_with_relative_constraints(cartons, containers,timeout = 30
 
         # Add 9 binary orientation variables for each carton
         orientation[carton['id']] = {
-            '''
-            lx, ly, lz are binary variables that are 1 if the length, 
-            width, height of the carton are aligned with the x, y, z axes respectively    '''
+            
 
             "lx": model.addVar(vtype=GRB.BINARY, name=f"lx_{carton['id']}"),
             "ly": model.addVar(vtype=GRB.BINARY, name=f"ly_{carton['id']}"),

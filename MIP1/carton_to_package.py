@@ -2,10 +2,6 @@ import csv
 import ast
 from utils.structs import CartonPackage as Package
 
-import csv
-import ast
-from utils.structs import CartonPackage as Package
-
 
 def sol_to_package(solution):
     """

@@ -1,7 +1,7 @@
 import streamlit as st
-import pages.Input as Input
-import pages.Manual_Input as Manual_Input
-import pages.Visualisation as Visualisation
+import streamlitPages.Input as Input
+import streamlitPages.Manual_Input as Manual_Input
+import streamlitPages.Visualisation as Visualisation
 
 
 # Initialize session state for page navigation if not already set
