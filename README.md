@@ -34,10 +34,10 @@ Run the following command in the repository folder:
 python main.py
 ```  
 
-For advanced usage, an optional timeout parameter (in seconds) can be added to control the runtime:  
+For advanced usage, an optional timeout parameter t (in seconds) can be added to control the runtime:  
 
 ```bash
-python main.py --timeout <seconds>
+python main.py t
 ```  
 
 #### 2. Streamlit Web Application  
