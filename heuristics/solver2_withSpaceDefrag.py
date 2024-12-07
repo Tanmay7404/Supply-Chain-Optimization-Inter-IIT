@@ -1,10 +1,10 @@
 import math
-
 from utils.metrics import calculateCost
-from utils.structs import Axis
-from utils.updatePackages import updatePackages
+from utils.structs import Axis, calculateEuclideanDistance
 
 class Solver2:
+
+    #Solver Initialisation
     def __init__(self, packages, ulds):
         self.packages = packages
         self.ulds = ulds
@@ -18,33 +18,26 @@ class Solver2:
                 self.priority.append(package)
             else:
                 self.economy.append(package)
-
-    def calculateEuclideanDistance(self, point):
-        return math.sqrt(point[0]**2   + point[1]**2  + point[2]**2 )
     
+    # SORTING FUNCTIONS
+    
+    # Sort Packages For Assignment. Priority Packages first, sorted by Volume and Economy Packages sorted by a cost function
     def sortPackagesAssignment(self, packages):
-
-        k=4
-        k2=3
 
         priority_packages = [p for p in packages if p.priority == "Priority"]
         non_priority_packages = [p for p in packages if p.priority != "Priority"]
         
         priority_packages.sort(key=lambda x: x.getVolume(), reverse=True)
-        # priority_packages.sort(key=lambda x: (math.floor(x.getVolume()/10), min(x.getDimensions()[0], x.getDimensions()[1], x.getDimensions()[2])), reverse=True)
         non_priority_packages.sort(key=lambda x: x.cost**3/(x.getVolume()**2 + x.weight**2) , reverse=True)
-        # non_priority_packages.sort(key=lambda x: (1e5 * x.cost/x.getVolume() + 1e4 * x.cost/x.weight + x.getVolume()/x.weight), reverse=True)
         packages[:] = priority_packages + non_priority_packages
    
     
-    def sortULDPackages(self, packages):
+    # Sort Packages for Fitting. Sort by Clustered Height-Area
+    def sortPackagesFitting(self, packages):
         packages.sort(key=lambda x: (math.floor(x.getDimensions()[2]/10),(x.getVolume())/(x.getDimensions()[2])), reverse=True)
 
-    # def sortULDs(self):
-    #     self.ulds.sort(key=lambda x: x.getWeight(), reverse=True)
-
-    permuationsAll = [[5,4,6,2,3,1]]                      
-
+    # Sort ULDs. Either Sort By Volume of Brute Force all permutations to find most optimal sorting
+    permuationsAll = [[5, 4, 6, 2, 3, 1],[4, 5, 6, 2, 3, 1],[6, 4, 5, 2, 3, 1],[5, 6, 4, 2, 3, 1],[4, 6, 5, 2, 3, 1],[6, 5, 4, 2, 3, 1], [5, 4, 6, 3, 2, 1], [4, 5, 6, 3, 2, 1], [6, 4, 5, 3, 2, 1], [5, 6, 4, 3, 2, 1], [4, 6, 5, 3, 2, 1], [6, 5, 4, 3, 2, 1], [5, 4, 6, 2, 1, 3], [4, 5, 6, 2, 1, 3], [6, 4, 5, 2, 1, 3], [5, 6, 4, 2, 1, 3], [4, 6, 5, 2, 1, 3], [6, 5, 4, 2, 1, 3], [5, 4, 6, 3, 1, 2], [4, 5, 6, 3, 1, 2], [6, 4, 5, 3, 1, 2], [5, 6, 4, 3, 1, 2], [4, 6, 5, 3, 1, 2], [6, 5, 4, 3, 1, 2]]
     def sortULDs(self,permutation):
         currPermutation=self.permuationsAll[permutation]
        
@@ -54,91 +47,34 @@ class Solver2:
         else:
             self.ulds.sort(key=lambda x: x.getVolume(), reverse=True)
 
-    def fitPackages(self, packages, uld, corners, isassigning = 0):# P : this is fitpackagePriority
+    
+    #FITTING PACKAGES
+
+    #Try to fit given packages in a ULD by sorting extreme points by Euclidean Distance and trying to fit the package in the corner
+    def fitPackages(self, packages, uld, corners, isassigning = 0):
         takenPackages = []
       
-        for package in packages:
-            uld.calculatePushLimit()
-            
+        for package in packages:            
             if str(package.ULD) == '-1': 
                 done = False
 
-                corners.sort(key=lambda corner: self.calculateEuclideanDistance(corner)) #sort on basis of euclidian
+                corners.sort(key=lambda corner: calculateEuclideanDistance(corner)) 
                 for corner in corners:
                     if uld.addBox(package, corner):
                         # Remove this corner and add the other 7 new corners
                         corners.remove(corner)
                         new_corners = uld.getNewCorners(package)
-                        corners.extend(new_corners)
-
-                        # Re-sort corners by Euclidean distance for the next iteration
-                        corners.sort(key=lambda x: self.calculateEuclideanDistance(x))
-                        
+                        corners.extend(new_corners)                        
                         takenPackages.append(package)
                         done = True
                         break
-                    # elif(uld.pushAddBox(package, corner)):
-                    #     done = True
-                    #     takenPackages.append(package)
-                    #     corners = uld.recalculate_corners()
-                    #     corners.sort(key=lambda x: self.calculateEuclideanDistance(x))
-                    #     break
-        
-                    
-        # uld.plotULD()
 
         print(len(takenPackages))        
         return corners, takenPackages
     
-    # P : we will define new fitpackageEconomy only difference will be we will iterate through uld,package,corner,rotation rest will be same
 
-    def assignPackagesPriority(self):
-        ulds = self.ulds[0:len(self.ulds)]
-        cm = {}
-        for i in ulds:
-            cm[i.id] = [[0, 0, 0]]
-            print("Assigning Priorty ULD: ", i.id)
-            [_, packagesInULD] = self.fitPackages(self.packages, i, [[0, 0, 0]],True)
-            self.takenPackages.extend(packagesInULD)
-            priority_done = True
-            for pack in self.packages:
-                if (pack not in self.takenPackages) and (pack.priority == "Priority"):
-                    priority_done = False
-                    break
-            if(priority_done):
-                break
-        # [_,takenPackages] = self.fit_int_ulds(self.packages, ulds, cm,"Assigning Proirity", assigning = 1)
-        # self.takenPackages.extend(takenPackages)
-
-        for uld in ulds:
-            if(len(uld.packages)!=0):
-                self.priorityULDs+=1
-        for uld in ulds:
-            uld.clearBin()
-
-        return
-    
-    def assignPackagesNormal(self):
-
-        # Initial fit for figuring out the assignment of packages to ULDs
-        ulds = self.ulds[self.priorityULDs:len(self.ulds)]
-        # cm = {}
-        for i in ulds:
-            # cm[i.id] = [[0, 0, 0]]
-            print("Assigning Normal ULD: ", i.id)
-            [_, packagesInULD] = self.fitPackages(self.packages, i, [[0, 0, 0]],True)
-            self.takenPackages.extend(packagesInULD)
-        # [_,takenPackages] = self.fit_int_ulds(self.packages, ulds, cm,"Assigning Normal")
-        # self.takenPackages.extend(takenPackages)
-
-        for uld in ulds:
-            uld.clearBin()
-
-        return
-    
-    
-
-    def fit_int_ulds(self,packages,ulds,cornermap,mess, assigning = 0):
+    #Fit packages in ULDs and Implementing Space Defragmentation by trying to replace unplaced packages in other ULDs
+    def fit_into_ulds(self,packages,ulds,cornermap,mess, assigning = 0):
         takenPackages = []
         for ii,uld in enumerate(ulds):
             
@@ -157,65 +93,126 @@ class Solver2:
                                     takenPackages.remove(poss_replace)
                                 takenPackages.append(unpacked_package)
                                 cornermap[uld.id] = ulds[jj].recalculate_corners()
-                                cornermap[uld.id].sort(key=lambda x: self.calculateEuclideanDistance(x))
                                 done = True
                                 break
                         if done:
                             break   
                 
-        return cornermap,takenPackages
+        return cornermap,takenPackages    
+    
 
-    def solve(self):
-
-        self.sortPackagesAssignment(self.packages)
+    #Assign Priority Packages to ULDs by trying to fit them in the ULDs. Then clearing the ULD    
+    def assignPackagesPriority(self):
+        ulds = self.ulds[0:len(self.ulds)]
+        cm = {}
+        for i in ulds:
+            cm[i.id] = [[0, 0, 0]]
+            print("Assigning Priorty ULD: ", i.id)
+            [_, packagesInULD] = self.fitPackages(self.packages, i, [[0, 0, 0]],True)
+            self.takenPackages.extend(packagesInULD)
+            priority_done = True
+            for pack in self.packages:
+                if (pack not in self.takenPackages) and (pack.priority == "Priority"):
+                    priority_done = False
+                    break
+            if(priority_done):
+                break
         
-        self.sortULDs(0)
 
-        self.assignPackagesPriority()
+        for uld in ulds:
+            if(len(uld.packages)!=0):
+                self.priorityULDs+=1
+        for uld in ulds:
+            uld.clearBin()
 
-        cornermap = {}
-        for uld in self.ulds:
-            cornermap[uld.id] = [[0, 0, 0]]
+        return
+    
+    #Assign Normal Packages to ULDs by trying to fit them in the ULDs. Then clearing the ULD
+    def assignPackagesNormal(self):
+        ulds = self.ulds[self.priorityULDs:len(self.ulds)]
+        for i in ulds:
+            print("Assigning Normal ULD: ", i.id)
+            [_, packagesInULD] = self.fitPackages(self.packages, i, [[0, 0, 0]],True)
+            self.takenPackages.extend(packagesInULD)
 
-        # Refit the packages into their respective ULD
-        self.sortULDPackages(self.takenPackages)
-        [cornermap,_] = self.fit_int_ulds(self.takenPackages, self.ulds, cornermap,"Fitting Proirity")
-        # for uld in self.ulds:
-        #     # self.sortULDPackages(uldMapping[uld.id])
-        #     print("Fitting Priority ULD: ", uld.id)
-        #     [corners, _] = self.fitPackages(self.takenPackages, uld, [[0, 0, 0]])
-        #     cornermap[uld.id] = corners
+        for uld in ulds:
+            uld.clearBin()
 
-        self.takenPackages = []
-        self.assignPackagesNormal()
-        self.sortULDPackages(self.takenPackages)
-        
-        [cornermap,_] = self.fit_int_ulds(self.takenPackages, self.ulds, cornermap,"Fitting Normal")
+        return
+    
 
-        self.sortULDPackages(self.packages)
+    #Apply Space Defragmentation and Projection to increase stability and reduce extra space, until cost is being reduced
+    def defragAndProject(self):
 
-        [cornermap,_] = self.fit_int_ulds(self.packages, self.ulds, cornermap,"Fitting Remaining")
-
+        #Projecting Packages 
         for uld in self.ulds:
             for package in uld.packages:
                 for axis in Axis.ALL:
                     if uld.project(package,axis) != -1:
                         package.position[axis] = uld.project(package,axis)
-
         cost = calculateCost(self.packages,self.ulds,5000)
         oldCost = 10000000000
         while cost != oldCost:
             oldCost = cost
-            updatePackages(self.packages,self.packages,self.ulds)
+            #Space Defragmentation
+            for unpacked_package in self.packages:
+                if str(unpacked_package.ULD) == '-1':
+                    done = False
+                    for jj in range(6):
+                        self.ulds[jj].calculatePushLimit()
+                        for poss_replace in self.ulds[jj].packages:
+                            if(self.ulds[jj].inflate_and_replace(unpacked_package,poss_replace)):
+                            
+                                done = True
+                                break
+                        if done:
+                            break
+
+            #Projecting Packages
+            for uld in self.ulds:
+                for axis in Axis.ALL:
+                    uld.packages.sort(key=lambda x: x.position[axis])
+                    for package in uld.packages:
+                        if uld.projectFinal(package,axis) != -1:
+                            package.position[axis] = uld.projectFinal(package,axis)
+
             cost = calculateCost(self.packages,self.ulds,5000)
-            print(cost,oldCost)
+
+    
+
+    def solve(self):
+        
+        #Sort the packages in the order we want to assign them
+        self.sortPackagesAssignment(self.packages)
+        
+        #Sort ULDS in appropriate Order
+        self.sortULDs(0)
+
+        #Assign Packages to Priority ULDs
+        self.assignPackagesPriority()
+
+        #CornerMap maintains list of extreme points of each ULDs, initialised from origin [0,0,0]
+        cornermap = {}
+        for uld in self.ulds:
+            cornermap[uld.id] = [[0, 0, 0]]
+
+        #Assigned Packages are fitted in the ULDs sorted by the fitting order
+        self.sortPackagesFitting(self.takenPackages)
+        [cornermap,_] = self.fit_into_ulds(self.takenPackages, self.ulds, cornermap,"Fitting Proirity")
+       
+        #Assigning Packages to the remaining ULDS, higher cost first
+        self.takenPackages = []
+        self.assignPackagesNormal()
+
+        #Assigened Packages are sorted by fitting order and fitted in the ULDs
+        self.sortPackagesFitting(self.takenPackages)
+        [cornermap,_] = self.fit_into_ulds(self.takenPackages, self.ulds, cornermap,"Fitting Normal")
+
+        #Unassigned Packages are then tried to fit into the ULDs
+        self.sortPackagesFitting(self.packages)
+        [cornermap,_] = self.fit_into_ulds(self.packages, self.ulds, cornermap,"Fitting Remaining")
 
 
-        # self.ulds[0].plotULD()
-        # self.ulds[1].plotULD()
-        # self.ulds[2].plotULD()
-        # self.ulds[3].plotULD()
-        # self.ulds[4].plotULD()
-        # self.ulds[5].plotULD()
-
-
+        #Applying Space Defragmentation and Projection 
+        self.defragAndProject()
+        

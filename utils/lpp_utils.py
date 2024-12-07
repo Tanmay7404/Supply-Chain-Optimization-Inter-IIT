@@ -1,32 +1,12 @@
-import matplotlib
-import numpy as np
 from utils.cartons import cartons
 from utils.containers import containers
-from LPP.model import all_swaps as solver
-from LPP.package_to_carton import get_from_greedy
+from utils.structs import getCube
 
 
 cartons = cartons()
 containers = containers()
-# filename = 'file.csv'
-# init = get_from_greedy(filename)
-# solution = solver(cartons=cartons, containers=containers, init=init)
-
-
 
 def are_cubes_intersecting(obj1, obj2):
-    """
-    Check if two cubes intersect.
-
-    Each cube is defined by its base point (x, y, z) and dimensions (dimX, dimY, dimZ).
-
-    Parameters:
-        cube1: tuple (x1, y1, z1, dimX1, dimY1, dimZ1) for cube 1
-        cube2: tuple (x2, y2, z2, dimX2, dimY2, dimZ2) for cube 2
-
-    Returns:
-        bool: True if the cubes intersect, False otherwise.
-    """
     if obj1['container_id'] != obj2['container_id']:
         return False
     x1 = obj1['x']
@@ -67,25 +47,6 @@ def plot(answer):
     import numpy as np
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-    def getCube(limits=None):
-        '''get the vertices, edges, and faces of a cuboid defined by its limits
-
-        limits = np.array([[x_min, x_max],
-                        [y_min, y_max],
-                        [z_min, z_max]])
-        '''
-        if limits is None:
-            limits = np.array([[0, 1], [0, 1], [0, 1]])
-        v = np.array([[x, y, z] for x in limits[0] for y in limits[1] for z in limits[2]])
-        e = np.array([[0, 1], [1, 3], [3, 2], [2, 0],
-                      [4, 5], [5, 7], [7, 6], [6, 4],
-                      [0, 4], [1, 5], [2, 6], [3, 7]])
-        f = np.array([[0, 1, 3, 2], [4, 5, 7, 6],
-                      [0, 1, 5, 4], [2, 3, 7, 6],
-                      [0, 2, 6, 4], [1, 3, 7, 5]])
-
-        return v, e, f
-
     num_containers = len(containers)
     fig = plt.figure(figsize=(15, 15))
     for idx, container in enumerate(containers):
@@ -110,19 +71,10 @@ def plot(answer):
     plt.show()
 
 
+# Verifies if a box lies completely inside a container.
 def is_box_inside_container(box, container):
-    """
-    Verifies if a box lies completely inside a container.
-
-    :param box: Dictionary with keys 'x', 'y', 'z', 'DimX', 'DimY', 'DimZ'
-    :param container: Dictionary with keys 'length', 'width', 'height'
-    :return: True if the box is inside the container, False otherwise
-    """
+    
     return (0 <= box['x'] and box['x'] + box['DimX'] <= container['length'] and
             0 <= box['y'] and box['y'] + box['DimY'] <= container['width'] and
             0 <= box['z'] and box['z'] + box['DimZ'] <= container['height'])
 
-
-# print("Found a valid solution: ")
-# print(solution)
-# plot(solution)

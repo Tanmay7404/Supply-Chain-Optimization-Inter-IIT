@@ -1,28 +1,12 @@
+import math
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from utils.structs import getCube
+
 def uldPlot(ulds):
-    import math
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
-    import numpy as np
-    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
-    def getCube(limits=None):
-        '''get the vertices, edges, and faces of a cuboid defined by its limits
-
-        limits = np.array([[x_min, x_max],
-                        [y_min, y_max],
-                        [z_min, z_max]])
-        '''
-        if limits is None:
-            limits = np.array([[0, 1], [0, 1], [0, 1]])
-        v = np.array([[x, y, z] for x in limits[0] for y in limits[1] for z in limits[2]])
-        e = np.array([[0, 1], [1, 3], [3, 2], [2, 0],
-                      [4, 5], [5, 7], [7, 6], [6, 4],
-                      [0, 4], [1, 5], [2, 6], [3, 7]])
-        f = np.array([[0, 1, 3, 2], [4, 5, 7, 6],
-                      [0, 1, 5, 4], [2, 3, 7, 6],
-                      [0, 2, 6, 4], [1, 3, 7, 5]])
-
-        return v, e, f
+    
 
     fig = plt.figure(figsize=(10, 10))
     idx = 0
