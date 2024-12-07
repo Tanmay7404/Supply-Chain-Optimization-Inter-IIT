@@ -13,6 +13,15 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
 def reset_state():
+    """
+    Resets the session state by removing specific keys if they exist.
+    This function checks if 'uld_file' and 'package_file' keys are present 
+    in the Streamlit session state and deletes them if they are found. 
+    This can be useful for resetting the state of the application to a 
+    clean slate, for example, when a user wants to start a new session 
+    without any previously uploaded files.
+    """
+
     if 'uld_file' in st.session_state:
         del st.session_state['uld_file']
     if 'package_file' in st.session_state:
@@ -21,7 +30,19 @@ def reset_state():
     # st.query_params()
 
 def page():
-   
+    """
+    Renders the input page for uploading ULDs and Packages CSV files, providing guidelines for the expected file formats,
+    and allowing users to proceed to the visualization page after successful uploads.
+    The function includes:
+    - A button to return to the main page.
+    - Title and markdown description of the expected CSV file formats.
+    - File uploaders for ULDs and Packages CSV files.
+    - Display of additional information and options if both files are uploaded.
+    - Sliders for selecting runtime and stability relaxation.
+    - A button to proceed to the visualization page if both files are uploaded.
+    - Warnings and information messages based on the file upload status.
+    """
+    
     # Add a button to return to main page
     if st.button("← Back to Main Page",key="back_to_main"):
         st.session_state.page = 'main'

@@ -7,6 +7,24 @@ from LPP.carton_to_package import sol_to_package
 from LPP.package_to_carton import make_solution
 
 def package_csv_to_sol(filename):
+    """
+    Reads a CSV file containing package information and converts it into a solution format.
+    Args:
+        filename (str): The path to the CSV file containing package data.
+    Returns:
+        list: A list of solutions generated from the package data.
+    The CSV file is expected to have the following columns:
+        - Column 0: Package ID
+        - Column 1: Package Type
+        - Column 2: Package Dimensions (as a string representation of a list)
+        - Column 3: Package Weight (as a string representation of a list)
+        - Column 4: Destination
+        - Column 5: Origin
+        - Column 6: Additional Information
+    The function reads each row from the CSV file, creates a `Package` object using the data,
+    and then generates a solution for each package using the `make_solution` function.
+    """
+
     import csv
     from utils.structs import CartonPackage as Package
     import ast
@@ -28,6 +46,24 @@ file_path = 'output.csv'
 def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 30, time_split_1 = 6000):
 
     def get_more_packages(file_path = None, packageArray = None, uldArray = None):
+
+        """
+            Processes packages and containers to optimize package assignments.
+            Args:
+                file_path (str, optional): Path to the CSV file containing package data.
+                packageArray (list, optional): List of package objects.
+                uldArray (list, optional): List of container objects.
+            Returns:
+                tuple: A tuple containing:
+                    - old_new_cartons (list): List of new cartons before sorting.
+                    - new_cartons (list): List of new cartons after sorting.
+                    - containers (list): List of containers with updated free space.
+                    - new_solution (list): List of new solutions (currently empty).
+                    - container_wise_solution (dict): Dictionary mapping container IDs to their respective solutions.
+                    - same_assignment_cartons (list): List of container IDs with the same assignment.
+                    - extra_fitted_cartons (list): List of IDs of extra fitted cartons.
+            """
+        
         new_cartons = []
         containers = []
         new_solution = []
@@ -37,6 +73,7 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
         extra_fitted_cartons = []
         cost_reduction = 0
 
+        # creating container objects and adding to list
         for container in uldArray:
             container = {
                 "id": container.id,
@@ -48,7 +85,7 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
             container['free_space'] = container['length'] * container['width'] * container['height']
             same_assignment_cartons.append(container['id'])
             containers.append(container)
-
+        
 
         container_assigned = {container['id']: [] for container in containers}
         container_lists = {container['id']: [] for container in containers}
@@ -57,10 +94,11 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
             soln=package_csv_to_sol(file_path)
             packageArray=sol_to_package(soln)
 
-        # if file_path is None:
         for package in packageArray:
             package.dimensions = package.getDimensions()
-            # package.dimensions.sort()
+            
+            """If the package is not assigned to any container, add it to the new_cartons list."""
+
             if (package.ULD == -1 or package.ULD == '-1'):
                 new_package = {
                         'id': package.id,
@@ -72,9 +110,10 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
                         'priority': package.priority
                     }
                 new_cartons.append(new_package)
-                # print(new_package)
-
             else:
+
+                """If the package is assigned to a container, add it to the container_assigned list."""
+
                 new_package = {
                     "id": package.id,
                     "length": package.dimensions[0],
@@ -88,61 +127,16 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
                 for container in containers:
                     if container['id'] == package.ULD:
                         container['free_space'] -= package.dimensions[0] * package.dimensions[1] * package.dimensions[2]
-            # print(len(new_cartons))
-        # else:
-        #     for container in containers:
-        #         # cartons = []
-        #         # print(container['id'])
-        #         with open(file_path, mode='r') as file:
-        #             csv_reader = csv.reader(file)
-        #             for row in csv_reader:
-        #                 if not ' '.join(row).strip():
-        #                     continue
-        #                 if row[1] == container['id']:
-        #                     package_id = row[0]
-        #                     dimensions = eval(row[3])
-        #                     # print("solving for ", package_id, "th package")
-        #                     container_assigned[container['id']].append(
-        #                         {
-        #                             'id': package_id,
-        #                             'length': dimensions[0],
-        #                             'width': dimensions[1],
-        #                             'height': dimensions[2],
-        #                             'weight': int(float(row[4])),
-        #                             'cost' : int(float(row[5])),
-        #                             'priority': row[7]   
-        #                         }
-        #                     )
-        #                     container['free_space'] -= dimensions[0] * dimensions[1] * dimensions[2]
-
-        #     with open(file_path, mode='r') as file:
-        #         csv_reader = csv.reader(file)
-        #         for row in csv_reader:
-        #             if not ' '.join(row).strip():
-        #                 continue
-        #             if row[1] == '-1':
-        #                 package_id = row[0]
-        #                 dimensions = eval(row[3])
-        #                 new_cartons.append(
-        #                     {
-        #                         'id': package_id,
-        #                         'length': dimensions[0],
-        #                         'width': dimensions[1],
-        #                         'height': dimensions[2],
-        #                         'weight': int(float(row[4])),
-        #                         'cost': int(float(row[5])),
-        #                         'priority': row[7]
-        #                     }
-        #                 )
-
-        
-
         old_new_cartons = new_cartons
+
+        # sort based on a metric to get those cartons first that have a higher chance of getting assigned
+        
         new_cartons = sorted(new_cartons, key=lambda x: (floor((x['length']*x['width']*x['height'])/100),-x['cost'],min(x['length'],x['width'],x['height']),x['weight']))
         new_cartons = new_cartons[:]
 
-        # if file_path is None:
-        for container in container_assigned:
+        # get the original solution for each container to be used in the solver 
+
+        for container in container_assigned:    
             original_solution = []
             for package in packageArray:
                 if package.ULD != container:
@@ -163,26 +157,23 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
                 })
             container_wise_solution[container] = original_solution
 
-        # for container in containers:
-            # print(container_assigned[container['id']].__len__())
-
         x=0
         prev = [-1] * len(new_cartons)
         ind=0
-        # containers=sorted(containers,key=lambda x: x['length']*x['width']*x['height'])
         counter=0
-        for i in new_cartons:
-            containers=sorted(containers,key=lambda x: x['free_space'])
-            for container in containers:
+        for i in new_cartons:                   # iterate over all cartons to try to fit them to containers
+            containers=sorted(containers,key=lambda x: x['free_space'])         # sort containers based on free space
+            for container in containers:                    
                 starttime = time.time()
-                container_assigned[container['id']].append(i)
+                container_assigned[container['id']].append(i)                   # temporarily add carton to container 
                 obtained_solution = solver(container_assigned[container['id']], [container], timeout)
                 if obtained_solution:
+                    # if the carton fits in the container, add it to the container_lists and update the free space of the container
                     x+=1
-                    extra_fitted_cartons.append(i['id'])
-                    container_lists[container['id']].append(i)
-                    cost_reduction += i['cost']
-                    container['free_space'] -= i['length'] * i['width'] * i['height']
+                    extra_fitted_cartons.append(i['id'])                                    # keep track of new cartons added
+                    container_lists[container['id']].append(i)  
+                    cost_reduction += i['cost']                                             # update cost reduction
+                    container['free_space'] -= i['length'] * i['width'] * i['height']       # update free space
                     print()
                     print()
                     print("------------------")
@@ -194,12 +185,11 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
                     print()
                     print()
                     print("###")
-                    # print(obtained_solution)
                     print("###")
                     current_container = obtained_solution[0]['container_id']
                     container_wise_solution[current_container] = obtained_solution
                     break
-                else:
+                else:                # infeasible solution is found, remove added from container
                     container_assigned[container['id']].pop()
 
                 counter+=(time.time()-starttime)
@@ -219,28 +209,15 @@ def binsearch(file_path = None, packageArray = None, uldArray = None, timeout = 
     old_new_cartons, new_cartons, containers, new_solution, container_wise_solution, same_assignment_cartons, extra_fitted_cartons = get_more_packages(file_path, packageArray, uldArray)
     print("done")
 
-    # weight_cost_priority_info = {}
-    # with open(file_path, mode='r') as file:
-    #     csv_reader = csv.reader(file)
-    #     for row in csv_reader:
-    #         if not ' '.join(row).strip():
-    #             continue
-    #         weight_cost_priority_info[row[0]] = [int(row[4]), int(row[5]), row[7]]
-
-
-
     added_cartons = {}
     for every_container in container_wise_solution:
         print("Container ", every_container, "was modified")
         same_assignment_cartons.remove(every_container)
         added_cartons[every_container] = 1
         for assignment in container_wise_solution[every_container]:
-        #     assignment['weight'] = weight_cost_priority_info[assignment['carton_id']][0]
-        #     assignment['cost'] = weight_cost_priority_info[assignment['carton_id']][1]
-        #     assignment['priority'] = weight_cost_priority_info[assignment['carton_id']][2]
             new_solution.append(assignment)
 
-
+    # update the solution with the new cartons that are not assigned to any container
     for carton in old_new_cartons:
         if carton['id'] in extra_fitted_cartons:
             continue

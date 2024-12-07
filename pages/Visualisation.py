@@ -222,25 +222,20 @@ def create_interactive_uld_plot(uld):
     )
     # Create figure with annotations
     fig = go.Figure(data=all_traces, layout=layout)
-    
-    # fig.add_annotation(
-    # xref='paper', yref='paper',
-    # x=0.02, y=0.98,
-    # bgcolor='rgba(255,255,255,1)',  # Full opacity white background
-    # bordercolor='black',  # Darker border
-    # borderwidth=2,
-    # borderpad=7,
-    # showarrow=False,
-    # font=dict(s
-    #     size=12,
-    #     color='black',
-    #     family='Arial, sans-serif'
-    # )
-    # )
-    
     return fig
 
 def process_file_input():
+    """
+    Processes the file inputs for ULDs and packages from the Streamlit session state.
+    This function reads CSV data from the Streamlit session state for ULDs and packages,
+    creates instances of ULD and Package classes, and returns lists of these instances.
+    Returns:
+        tuple: A tuple containing two lists:
+            - ulds (list): A list of ULD instances created from the ULD CSV data.
+            - packages (list): A list of Package instances created from the package CSV data.
+    """
+    # Function implementation here
+
     ulds = []
     packages = []
     
@@ -392,6 +387,25 @@ def create_progressive_uld_plot(uld, packages_to_add):
     return fig
 
 def metrics(ulds, packages):
+    """
+    Calculate various metrics related to the utilization of ULDs (Unit Load Devices) and packages.
+    Args:
+        ulds (list): A list of ULD objects, each containing volume, weight limit, and packages.
+        packages (list): A list of package objects, each containing volume, weight, priority, and ULD assignment.
+    Returns:
+        dict: A dictionary containing the following metrics:
+            - freeSpacePercentage (float): The percentage of free space available in all ULDs.
+            - freeWeightPercentage (float): The percentage of free weight capacity available in all ULDs.
+            - packagesTotal (int): The total number of packages.
+            - packagesPriority (int): The total number of priority packages.
+            - packagesEconomy (int): The total number of economy packages.
+            - packagesTotalTaken (int): The total number of packages that have been taken (assigned to a ULD).
+            - packagesPriorityTaken (int): The total number of priority packages that have been taken.
+            - packagesEconomyTaken (int): The total number of economy packages that have been taken.
+            - cost (float): The total cost of packages that have not been taken, plus an additional cost for priority ULDs.
+    """
+    # Function implementation here
+    
     freeSpace = 0
     totalSpace = 0
     freeWeight = 0
@@ -443,11 +457,49 @@ def metrics(ulds, packages):
     }
 
 def sort_packages_by_position(packages):
+    """
+    Sorts a list of packages based on their position.
+    The packages are sorted primarily by the z-coordinate, then by the x-coordinate,
+    and finally by the y-coordinate of their position.
+    Args:
+        packages (list): A list of package objects, where each package has a 'position' attribute
+                         that is a tuple or list containing three numerical values (x, y, z).
+    Returns:
+        list: A sorted list of packages based on their position.
+    """
+    # Sort packages by z-coordinate, then x-coordinate, and finally y-coordinate
+    
     return sorted(packages, key=lambda p: (p.position[2], p.position[0], p.position[1]))
 
 
 
 def page():
+    """
+    Renders the ULDs and Packages Visualization page in a Streamlit application.
+    This function handles the following:
+    - Displays the title of the page.
+    - Provides a button to navigate back to the main page.
+    - Manages session state for delay placeholders.
+    - Determines the input method (file upload or manual input) and processes the ULDs and Packages accordingly.
+    - Visualizes the ULDs and Packages using progressive plots.
+    - Displays various metrics related to the ULDs and Packages.
+    The function checks for the presence of ULD and Package data in the session state and processes them using the appropriate method:
+    - If file upload method is used, it processes the files and visualizes the data.
+    - If manual input method is used, it uses the Solver2 class to solve and visualize the data.
+    Metrics displayed include:
+    - Free Space Percentage
+    - Free Weight Percentage
+    - Total Packages
+    - Priority Packages
+    - Economy Packages
+    - Packages Taken
+    - Priority Packages Taken
+    - Economy Packages Taken
+    - Total Cost
+    If no ULDs or Packages are found in the session state, an error message is displayed.
+    At the end of the function, any ULD or Package data in the session state is cleared.
+    """
+
     st.title("ULDs and Packages Visualization")
     
     # Add a button to return to main page

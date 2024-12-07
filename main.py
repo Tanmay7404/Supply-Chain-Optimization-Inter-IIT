@@ -15,10 +15,26 @@ import time
 
 
 
-
-
-
 def generateOutput(packages):
+    """
+    Generates an output CSV file with package details and calculates the total cost.
+    Args:
+        packages (list): A list of package objects. Each package object must have the attributes:
+                         - id: Identifier of the package.
+                         - ULD: Unit Load Device identifier.
+                         - position: Position of the package.
+                         - getDimensions(): Method to get the dimensions of the package.
+                         - weight: Weight of the package.
+                         - cost: Cost associated with the package.
+                         - rotation: Rotation of the package.
+                         - priority: Priority status of the package.
+    The function performs the following steps:
+    1. Sorts the packages based on ULD and position.
+    2. Calculates the total cost, adding a fixed amount for priority containers.
+    3. Writes the package details to a CSV file named with the total cost.
+    4. Calls the generateFinalOutput function to perform further processing.
+    """
+    
     cost = 0
     packages.sort(key=lambda x: (str(x.ULD), list(x.position)))
     priority_containers = set()
@@ -37,7 +53,26 @@ def generateOutput(packages):
              package.rotation, package.priority])
     generateFinalOutput(packages)
 
+
+
 def generateFinalOutput(packages):
+    """
+    Generates the final output CSV file with package details and calculates the total cost.
+    Args:
+        packages (list): A list of package objects. Each package object should have the following attributes:
+            - ULD (str or int): Unit Load Device identifier. If ULD is "-1", the package is considered unassigned.
+            - cost (int): The cost associated with the package.
+            - position (list): A list of three integers representing the position of the package.
+            - id (int): The unique identifier of the package.
+            - getDimensions (method): A method that sets the dimensions attribute of the package.
+    The function performs the following steps:
+        1. Sorts the packages based on ULD and position.
+        2. Calculates the total cost by summing the cost of unassigned packages and adding a fixed cost for priority containers.
+        3. Writes the total cost, number of packages, and number of priority containers to a CSV file.
+        4. Writes the details of each package to the CSV file, including the package ID, ULD, and corner positions.
+    """
+
+    
     cost = 0
     packages.sort(key=lambda x: (str(x.ULD), list(x.position)))
     priority_containers = set()
@@ -66,8 +101,26 @@ def generateFinalOutput(packages):
 
 def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
 
-    #from timeout, choose 4 parameters, time for 1st MIP, time for 2nd MIP, number of cartons in 1st MIP, number of ULDs in 2nd MIP
-    #timeout = t1*6*c1 + t2*u2
+    """
+    Executes the optimization process for loading packages into ULDs (Unit Load Devices).
+    Args:
+        ulds (list): List of ULD objects representing the containers.
+        packages (list): List of package objects to be loaded into ULDs.
+        timeout (int, optional): Total time allowed for the optimization process. Defaults to 300 seconds.
+        stabilityThreshold (float, optional): Threshold for stability in the optimization process. Defaults to 0.5.
+        k (int, optional): Parameter for the cost calculation. Defaults to 5000.
+    Returns:
+        float: The final cost after the optimization process.
+    The function performs the following steps:
+    1. Initializes the solver with the given packages and ULDs.
+    2. Updates the packages and generates the initial output.
+    3. Calculates and prints the initial metrics.
+    4. Performs a binary search optimization if the initial time split is greater than 0.
+    5. Iteratively updates the packages and recalculates the cost until it stabilizes.
+    6. If the remaining time is sufficient, performs further optimization on specific ULDs.
+    7. Generates the final output and returns the final cost.
+    """
+
 
     solver2 = Solver2(packages,ulds)
     solver2.solve()
@@ -100,7 +153,6 @@ def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
         updatePackages(packages,packages,ulds)
         cost = calculateCost(packages,ulds,5000)
         print(cost,oldCost)
-    # ulds.sort(key=lambda x: (sum(p.cost for p in x.packages))**2*(sum(p.length*p.width*p.height for p in x.packages)))
     if time_split_2 > 2:
         num_uld = 2
         if time_split_2 >= 600:
@@ -132,9 +184,6 @@ def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
 
     updatePackages(packages,finalsol,ulds)
         
-
-
-    # generateOutput(packages)
     cost = calculateCost(packages,ulds,5000)
     oldCost = 10000000000
     while cost != oldCost:
@@ -143,10 +192,10 @@ def run_all(ulds, packages,timeout = 300, stabilityThreshold = 0.5, k = 5000):
         cost = calculateCost(packages,ulds,5000)
         print(cost,oldCost)
     return cost
-    # uldPlot(ulds)
-    # package array plot here
 
 
+
+# To get the solution without running the streamlit app
 
 if __name__ == "__main__":
     timeout = 300
@@ -161,24 +210,5 @@ if __name__ == "__main__":
     packages = []
     getPackages(packages)
     getULD(ulds)
-
-    # solution = package_csv_to_sol(filename="28462.csv")
-    # newPackages = sol_to_package(solution)
-    # updatePackages(packages,newPackages,ulds)
-    # metrics(packages,ulds,k)
-    # # cartonss = cartons()
-    # # containerss = containers()
-    # myuld = ulds[0]
-    # for uld in ulds:
-    #     if uld.id == "U3":
-    #         myuld = uld
-    #         break
-    # init,cartonss,assigned_solutions,_ = get_specific_from_greedy([myuld.id],packageArray=packages)
-    # containerss = containers_specific(myuld.id)
-    # solution = solver(cartonss, containerss, init, assigned_solutions,timeout=1000000)
-    # temp = sol_to_package(solution)
-    # updatePackages(packages,temp,ulds)
-    # generateOutput(packages)
-    # metrics(packages,ulds,k)
 
     run_all(ulds, packages,timeout)

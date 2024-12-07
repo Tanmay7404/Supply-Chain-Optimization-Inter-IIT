@@ -3,12 +3,40 @@ from utils.structs import ULD, Package
 
 
 def reset_state():
+    """
+    Resets the session state by deleting 'manual_ulds' and 'manual_packages' 
+    from the Streamlit session state if they exist.
+    This function is useful for clearing any manually inputted data related 
+    to ULDS (Unit Load Devices) and packages, ensuring that the session 
+    state is clean and ready for new input.
+    """
+
     if 'manual_ulds' in st.session_state:
         del st.session_state.manual_ulds
     if 'manual_packages' in st.session_state:
         del st.session_state.manual_packages
 
 def page():
+    """
+    Renders the manual input page for ULDs and Packages in a Streamlit application.
+    This function displays a form for users to manually input ULD (Unit Load Device) and Package details.
+    It also provides options to return to the main page, reset inputs, and proceed to the visualization page.
+    The inputs are stored in the Streamlit session state.
+    The page includes the following sections:
+    - Title: "Manual Input for ULDs and Packages"
+    - Button to return to the main page
+    - Initialization of session state for ULDs and Packages if not already present
+    - ULD Input Section: Form to input ULD details (ID, Length, Width, Height, Weight Limit)
+    - Package Input Section: Form to input Package details (ID, Length, Width, Height, Weight, Type, Penalty)
+    - Display of current ULDs and Packages
+    - Sliders to select runtime and stability relaxation
+    - Button to proceed to the visualization page
+    - Button to reset inputs
+    Note:
+    - The function assumes the existence of ULD and Package classes for creating ULD and Package objects.
+    - The function uses Streamlit's session state to store and manage the inputs.
+    """
+
     st.title("Manual Input for ULDs and Packages")
     
     # Add a button to return to main page

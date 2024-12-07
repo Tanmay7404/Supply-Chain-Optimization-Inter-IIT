@@ -7,6 +7,30 @@ cartons = cartons()
 containers = containers()
 
 def are_cubes_intersecting(obj1, obj2):
+    """
+    Determine if two 3D rectangular objects (cubes) are intersecting.
+    This function checks whether two cubes, defined by their coordinates and dimensions,
+    intersect with each other in a 3D space. The cubes are considered to be in the same
+    container if their 'container_id' values are the same.
+    Parameters:
+    obj1 (dict): A dictionary representing the first cube with keys:
+        - 'container_id': Identifier for the container the cube is in.
+        - 'x': The x-coordinate of the cube's origin.
+        - 'y': The y-coordinate of the cube's origin.
+        - 'z': The z-coordinate of the cube's origin.
+        - 'DimX': The dimension of the cube along the x-axis.
+        - 'DimY': The dimension of the cube along the y-axis.
+        - 'DimZ': The dimension of the cube along the z-axis.
+    obj2 (dict): A dictionary representing the second cube with the same keys as obj1.
+    Returns:
+    bool: True if the cubes intersect, False otherwise.
+    Note:
+    - The function first checks if both cubes are in the same container.
+    - It then calculates the minimum and maximum coordinates for both cubes along each axis.
+    - Finally, it checks for overlap on all three axes (x, y, and z) to determine intersection.
+    """
+    # Function implementation here
+
     if obj1['container_id'] != obj2['container_id']:
         return False
     x1 = obj1['x']
@@ -41,6 +65,31 @@ def are_cubes_intersecting(obj1, obj2):
 
 
 def plot(answer):
+    """
+    Plots the 3D visualization of packages inside containers.
+    This function takes a list of packages and plots their positions inside their respective containers
+    using a 3D plot. Each container is plotted in a separate subplot.
+    Parameters:
+    answer (list of dict): A list of dictionaries where each dictionary represents a package with the following keys:
+        - 'container_id': ID of the container the package belongs to.
+        - 'x': X-coordinate of the package's position.
+        - 'y': Y-coordinate of the package's position.
+        - 'z': Z-coordinate of the package's position.
+        - 'DimX': Dimension of the package along the X-axis.
+        - 'DimY': Dimension of the package along the Y-axis.
+        - 'DimZ': Dimension of the package along the Z-axis.
+    Note:
+    - The function assumes that the variable `containers` is defined globally and contains a list of dictionaries,
+      where each dictionary represents a container with the following keys:
+        - 'id': ID of the container.
+        - 'length': Length of the container.
+        - 'width': Width of the container.
+        - 'height': Height of the container.
+    - The function uses the `getCube` function to generate the vertices, edges, and faces of the packages.
+    - The function uses Matplotlib for plotting.
+    """
+    # Function implementation here
+
     import math
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
@@ -73,6 +122,15 @@ def plot(answer):
 
 # Verifies if a box lies completely inside a container.
 def is_box_inside_container(box, container):
+    """
+    Check if a box is inside a container.
+    Parameters:
+    box (dict): A dictionary containing the dimensions and position of the box with keys 'x', 'y', 'z', 'DimX', 'DimY', 'DimZ'.
+    container (dict): A dictionary containing the dimensions of the container with keys 'length', 'width', 'height'.
+    Returns:
+    bool: True if the box is inside the container, False otherwise.
+    The function checks if the box is within the bounds of the container in all three dimensions (x, y, z).
+    """
     
     return (0 <= box['x'] and box['x'] + box['DimX'] <= container['length'] and
             0 <= box['y'] and box['y'] + box['DimY'] <= container['width'] and

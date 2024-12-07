@@ -1,4 +1,29 @@
 def get_from_greedy(filename = None, packageArray = None):
+    """
+    Generates an initial solution for package placement using a greedy approach.
+    This function reads package data from a CSV file or a provided package array, 
+    and generates initial placement and orientation information for each package 
+    in a set of predefined ULDs (Unit Load Devices).
+    Args:
+        filename (str, optional): The path to the CSV file containing package data. 
+                                    If None, packageArray must be provided.
+        packageArray (list, optional): A list of Package objects. If None, filename must be provided.
+    Returns:
+        dict: A dictionary containing the initial solution with the following keys:
+            - 'sij': A dictionary indicating whether a package is in a specific ULD.
+            - 'xi': A dictionary with the x-coordinates of each package.
+            - 'yi': A dictionary with the y-coordinates of each package.
+            - 'zi': A dictionary with the z-coordinates of each package.
+            - 'relative_position': A dictionary indicating the relative positions of packages.
+            - 'orientation': A dictionary indicating the orientation of each package.
+    Raises:
+        ValueError: If both filename and packageArray are None.
+    Notes:
+        - The function assumes that the CSV file has the following columns:
+            id, ULD, dimensions, position, and other relevant fields.
+        - The dimensions and positions are expected to be in a specific format 
+            that can be evaluated using ast.literal_eval.
+    """
     import csv
     from utils.structs import CartonPackage as Package
     import ast
@@ -151,6 +176,28 @@ def get_from_greedy(filename = None, packageArray = None):
                         'relative_position': initialrelative_position, 'orientation': initialorientation}
     return initial_solution
 def make_carton(package):
+    """
+    Converts a package object into a carton dictionary with sorted dimensions.
+    Args:
+        package (object): An object representing a package with attributes:
+            - dimensions (list): A list of three dimensions [length, width, height].
+            - id (str): The unique identifier of the package.
+            - weight (float): The weight of the package.
+            - priority (int): The priority level of the package.
+            - cost (float): The cost associated with the package.
+            - ULD (str): The container ID for the package.
+    Returns:
+        dict: A dictionary representing the carton with the following keys:
+            - id (str): The unique identifier of the package.
+            - length (float): The smallest dimension of the package.
+            - width (float): The middle dimension of the package.
+            - height (float): The largest dimension of the package.
+            - weight (float): The weight of the package.
+            - Priority (int): The priority level of the package.
+            - cost (float): The cost associated with the package.
+            - container_id (str): The container ID for the package.
+    """
+
     v = [float(package.dimensions[0]), float(package.dimensions[1]), float(package.dimensions[2])]
     v.sort()
     carton = {
@@ -164,7 +211,34 @@ def make_carton(package):
         "container_id": package.ULD
     }
     return carton
+
+
 def make_solution(package):
+    """
+    Converts a package object into a solution dictionary with position and dimension details.
+    Args:
+        package (object): An object representing a package with attributes:
+            - dimensions (list): A list of three dimensions [length, width, height].
+            - position (list): A list of three coordinates [x, y, z].
+            - id (str): The unique identifier of the package.
+            - weight (float): The weight of the package.
+            - priority (int): The priority level of the package.
+            - cost (float): The cost associated with the package.
+            - ULD (str): The container ID for the package.
+    Returns:
+        dict: A dictionary representing the solution with the following keys:
+            - carton_id (str): The unique identifier of the package.
+            - x (float): The x-coordinate of the package.
+            - y (float): The y-coordinate of the package.
+            - z (float): The z-coordinate of the package.
+            - DimX (float): The smallest dimension of the package.
+            - DimY (float): The middle dimension of the package.
+            - DimZ (float): The largest dimension of the package.
+            - weight (float): The weight of the package.
+            - Priority (int): The priority level of the package.
+            - cost (float): The cost associated with the package.
+            - container_id (str): The container ID for the package.
+    """
     v = [float(package.dimensions[0]), float(package.dimensions[1]), float(package.dimensions[2])]
     x = float(package.position[0])
     y = float(package.position[1])
@@ -186,11 +260,27 @@ def make_solution(package):
     return carton
 
 def are_base_area_intersecting(package1, package2):
+    """
+    Determines if the base areas of two packages are intersecting.
+    Args:
+        package1: An object representing the first package, which has 'position' and 'dimensions' attributes.
+                  'position' is a tuple (x, y) representing the bottom-left corner of the package.
+                  'dimensions' is a tuple (width, height) representing the size of the package.
+        package2: An object representing the second package, which has 'position' and 'dimensions' attributes.
+                  'position' is a tuple (x, y) representing the bottom-left corner of the package.
+                  'dimensions' is a tuple (width, height) representing the size of the package.
+    Returns:
+        bool: True if the base areas of the two packages intersect, False otherwise.
+    The function checks if the base areas of two packages overlap by comparing their positions and dimensions.
+    """
+
     if package1.position[0] + package1.dimensions[0] <= package2.position[0] or package2.position[0] + package2.dimensions[0] <= package1.position[0]:
         return False
     if package1.position[1] + package1.dimensions[1] <= package2.position[1] or package2.position[1] + package2.dimensions[1] <= package1.position[1]:
         return False
     return True
+
+
 def get_specific_from_greedy( container_ids, filename= None, packageArray = None):
 
     import csv
@@ -391,6 +481,28 @@ def get_specific_from_greedy( container_ids, filename= None, packageArray = None
     return initial_solution, cartons, assigned_solutions, stability_constraints
 def get_specific_from_greedy_multi( container_ids, filename= None, packageArray = None):
 
+    """
+    Processes packages and assigns them to cartons or solutions based on container IDs.
+    This function reads package data either from a CSV file or from a provided array of packages.
+    It then assigns each package to a carton or a solution based on the specified container IDs.
+    Args:
+        container_ids (list): A list of container IDs to filter packages.
+        filename (str, optional): The path to the CSV file containing package data. Defaults to None.
+        packageArray (list, optional): An array of package objects. Defaults to None.
+    Returns:
+        tuple: A tuple containing two lists:
+            - cartons (list): A list of cartons created from the packages.
+            - assigned_solutions (list): A list of solutions assigned to the packages.
+    Raises:
+        FileNotFoundError: If the specified CSV file does not exist.
+        ValueError: If the package data in the CSV file is not in the expected format.
+    Note:
+        - If `filename` is provided, the function reads package data from the CSV file.
+        - If `filename` is not provided, the function uses the `packageArray` for package data.
+        - Packages with ULD value "-1" or not in the specified container IDs are assigned to cartons.
+        - Packages with ULD value in the specified container IDs are assigned to solutions.
+    """
+
     import csv
     from utils.structs import CartonPackage as Package
     import ast
@@ -424,7 +536,27 @@ def get_specific_from_greedy_multi( container_ids, filename= None, packageArray 
     # print(initial_solution)
     cartons.sort(key=lambda x: x['id'])
     return cartons, assigned_solutions
+
+
 def package_csv_to_sol(filename):
+    """
+    Reads a CSV file containing package information and converts it into a solution format.
+    Args:
+        filename (str): The path to the CSV file containing package data.
+    Returns:
+        list: A list of solutions generated from the package data.
+    The CSV file is expected to have the following columns:
+        - Column 0: Package ID
+        - Column 1: Package Type
+        - Column 2: Package Dimensions (as a string representation of a list)
+        - Column 3: Package Weight (as a string representation of a list)
+        - Column 4: Destination
+        - Column 5: Origin
+        - Column 6: Additional Information
+    The function reads each row from the CSV file, creates a `Package` object from the row data,
+    and then generates a solution for each package using the `make_solution` function.
+    """
+    
     import csv
     from utils.structs import CartonPackage as Package
     import ast
