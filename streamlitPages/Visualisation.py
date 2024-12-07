@@ -517,7 +517,7 @@ def page():
         # File upload method
         ulds, packages = process_file_input()
         # Solve and visualize
-        run_all(ulds, packages, st.session_state.timeout, st.session_state.stabilityThrehold)
+        run_all(ulds, packages, st.session_state.timeout)
         #sort by z,x,y
         
         st.subheader("Visualizing ULDs and Packages")

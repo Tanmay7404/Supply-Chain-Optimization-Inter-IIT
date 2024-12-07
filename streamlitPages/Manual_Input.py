@@ -101,9 +101,7 @@ def page():
 
     # Proceed to Visualization
     userTimeout = st.slider("Select runtime (in minutes)", min_value=2, value=20, step = 2)
-    stabilityThrehold = st.slider("Select stability Relaxation", min_value=0.1, value=0.5, step = 0.1, max_value=1.0)
     st.session_state.timeout = userTimeout * 60
-    st.session_state.stabilityThrehold = stabilityThrehold
     if st.button("Proceed to Visualization",key="proceed_to_visualization"):
         st.session_state.page = 'visualization'
         st.rerun()
