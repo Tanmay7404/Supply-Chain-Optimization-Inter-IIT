@@ -37,16 +37,17 @@ class Solver2:
         packages.sort(key=lambda x: (math.floor(x.getDimensions()[2]/10),(x.getVolume())/(x.getDimensions()[2])), reverse=True)
 
     # Sort ULDs. Either Sort By Volume of Brute Force all permutations to find most optimal sorting
-    permuationsAll = [[5, 4, 6, 2, 3, 1],[4, 5, 6, 2, 3, 1],[6, 4, 5, 2, 3, 1],[5, 6, 4, 2, 3, 1],[4, 6, 5, 2, 3, 1],[6, 5, 4, 2, 3, 1], [5, 4, 6, 3, 2, 1], [4, 5, 6, 3, 2, 1], [6, 4, 5, 3, 2, 1], [5, 6, 4, 3, 2, 1], [4, 6, 5, 3, 2, 1], [6, 5, 4, 3, 2, 1], [5, 4, 6, 2, 1, 3], [4, 5, 6, 2, 1, 3], [6, 4, 5, 2, 1, 3], [5, 6, 4, 2, 1, 3], [4, 6, 5, 2, 1, 3], [6, 5, 4, 2, 1, 3], [5, 4, 6, 3, 1, 2], [4, 5, 6, 3, 1, 2], [6, 4, 5, 3, 1, 2], [5, 6, 4, 3, 1, 2], [4, 6, 5, 3, 1, 2], [6, 5, 4, 3, 1, 2]]
+    permuationsAll = [[6,4,5,2,1,3],[4, 5, 6, 2, 3, 1],[6, 4, 5, 2, 3, 1],[5, 6, 4, 2, 3, 1],[4, 6, 5, 2, 3, 1],[6, 5, 4, 2, 3, 1], [5, 4, 6, 3, 2, 1], [4, 5, 6, 3, 2, 1], [6, 4, 5, 3, 2, 1], [5, 6, 4, 3, 2, 1], [4, 6, 5, 3, 2, 1], [6, 5, 4, 3, 2, 1], [5, 4, 6, 2, 1, 3], [4, 5, 6, 2, 1, 3], [6, 4, 5, 2, 1, 3], [5, 6, 4, 2, 1, 3], [4, 6, 5, 2, 1, 3], [6, 5, 4, 2, 1, 3], [5, 4, 6, 3, 1, 2], [4, 5, 6, 3, 1, 2], [6, 4, 5, 3, 1, 2], [5, 6, 4, 3, 1, 2], [4, 6, 5, 3, 1, 2], [6, 5, 4, 3, 1, 2]]
     def sortULDs(self,permutation):
         currPermutation=self.permuationsAll[permutation]
        
         if(len(self.ulds)==6):
-            mapuldtoperm = {"U4": currPermutation[0], "U5": currPermutation[1], "U6": currPermutation[2], "U1": currPermutation[3], "U2": currPermutation[4], "U3": currPermutation[5]}  
-            self.ulds.sort(key=lambda x: mapuldtoperm[x.id], reverse=True)
+            newUld = []
+            for i in range(6):
+                newUld.append(self.ulds[currPermutation[i]-1])
+            self.ulds = newUld
         else:
             self.ulds.sort(key=lambda x: x.getVolume(), reverse=True)
-
     
     #FITTING PACKAGES
 

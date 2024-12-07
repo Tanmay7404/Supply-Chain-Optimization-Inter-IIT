@@ -478,13 +478,13 @@ class ULD:
         return corners
             
     #Replace a Higher Cost, Higher Volume unplaced package with a packed package, by pushing out other packages and normalising back
-    def inflate_and_replace(self,pck,rep):
+    def inflate_and_replace(self,pck,rep,lpp = False):
 
         if(pck.priority != rep.priority):
             return False
         if(pck.cost < rep.cost):
             return False
-        if(pck.getVolume() < rep.getVolume()):
+        if((not lpp)and(pck.getVolume() < rep.getVolume())):
             return False
         
         currpack = self.packages.copy()

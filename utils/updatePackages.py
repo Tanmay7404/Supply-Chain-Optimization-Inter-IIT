@@ -40,7 +40,7 @@ def updatePackages(packages,newPackages,ulds):
             for jj in range(6):
                 ulds[jj].calculatePushLimit()
                 for poss_replace in ulds[jj].packages:
-                    if(ulds[jj].inflate_and_replace(unpacked_package,poss_replace)):
+                    if(ulds[jj].inflate_and_replace(unpacked_package,poss_replace,lpp=True)):
                        
                         done = True
                         break
