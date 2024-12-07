@@ -34,7 +34,7 @@ Run the following command in the repository folder:
 python main.py
 ```  
 
-For advanced usage, an optional timeout parameter t (in seconds) can be added to control the runtime:  
+For advanced usage, an optional timeout parameter t (in seconds) can be added to control the runtime. Here t is not the total runtime, but the time the MIP solvers will run for:  
 
 ```bash
 python main.py t
@@ -80,6 +80,8 @@ Prepare two CSV files:
 - **ULDs**: Contains ULD data with columns: ULD_id, length, width, height, and weight_limit.  
 - **Packages**: Contains package data with columns: Package_id, length, width, height, weight, package_type, and penalty (for economy packages; enter `-` for priority packages).  
 
+After that, you can choose the runtime t. Here t is not the total runtime, but the time the MIP solvers will run for.
+
 Example ULDs CSV:  
 
 ```csv
@@ -105,6 +107,8 @@ Manually enter details for:
 - **Packages**: Package_id, length, width, height, weight, package_type, penalty (for economy packages; enter `-` for priority packages).  
 
 Click on __Add ULD__ or __Add Package__ after entering data for each ULD/package.  
+
+After that, you can choose the runtime t. Here t is not the total runtime, but the time the MIP solvers will run for.
 
 ---
 

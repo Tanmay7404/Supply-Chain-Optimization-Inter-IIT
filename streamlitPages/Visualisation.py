@@ -137,92 +137,6 @@ def create_package_mesh(package,color_map):
     
     return [mesh_trace] + edge_traces
 
-def create_interactive_uld_plot(uld):
-    """
-    Create an advanced interactive 3D plot of ULD packages
-    
-    Args:
-        uld: ULD object containing packages
-    
-    Returns:
-        Plotly figure object
-    """
-     # Generate color map for packages
-    color_map = generate_color_map(uld.packages)
-
-    # Prepare traces for each package
-    all_traces = []
-    
-    for package in uld.packages:
-        all_traces.extend(create_package_mesh(package,color_map))
-    
-    # Determine plot boundaries
-    max_length = float(uld.length)
-    max_width = float(uld.width)
-    max_height = float(uld.height)
-    
-   # Create the layout with improved aesthetics
-    layout = go.Layout(
-    scene=dict(
-        xaxis=dict(
-            title=dict(
-                text='Length', 
-                font=dict(size=16, color='black', family='Arial, bold')
-            ),
-            range=[0, max_length],
-            tickmode='array',
-            tickvals=np.linspace(0, max_length, 11),
-            ticktext=[f'{int(x)}' for x in np.linspace(0, max_length, 11)],
-            gridcolor='lightgray',
-            showbackground=True,
-            backgroundcolor='rgba(230,230,230,0.5)'  # More visible background
-        ),
-        yaxis=dict(
-            title=dict(
-                text='Width', 
-                font=dict(size=14, color='black', family='Arial, bold')
-            ),
-            range=[0, max_width],
-            tickmode='array',
-            tickvals=np.linspace(0, max_width, 11),
-            ticktext=[f'{int(x)}' for x in np.linspace(0, max_width, 11)],
-            gridcolor='lightgray',
-            showbackground=True,
-            backgroundcolor='rgba(230,230,230,0.5)'  # More visible background
-        ),
-        zaxis=dict(
-            title=dict(
-                text='Height', 
-                font=dict(size=14, color='black', family='Arial, bold')
-            ),
-            range=[0, max_height],
-            tickmode='array',
-            tickvals=np.linspace(0, max_height, 11),
-            ticktext=[f'{int(x)}' for x in np.linspace(0, max_height, 11)],
-            gridcolor='lightgray',
-            showbackground=True,
-            backgroundcolor='rgba(230,230,230,0.5)'  # More visible background
-        ),
-        camera=dict(
-            eye=dict(x=1.5, y=1.5, z=1.5)  # Initial camera angle
-        ),
-        aspectmode='manual',
-        aspectratio=dict(x=1, y=1, z=1)
-    ),
-    title=dict(
-        text=f'ULD {uld.id} Visualization',
-        font=dict(
-            size=24, 
-            color='black', 
-            family='Arial, bold'  # Bold and specific font
-        )
-    ),
-    margin=dict(l=0, r=0, b=0, t=50),
-    paper_bgcolor='white'
-    )
-    # Create figure with annotations
-    fig = go.Figure(data=all_traces, layout=layout)
-    return fig
 
 def process_file_input():
     """
@@ -261,7 +175,7 @@ def process_file_input():
 
 def create_progressive_uld_plot(uld, packages_to_add):
     """
-    Create a progressive 3D plot where packages are added one by one
+    Create a progressive 3D plot where packages are added one by one with ULD boundaries and semi-transparent faces.
     
     Args:
         uld: ULD object 
@@ -271,38 +185,75 @@ def create_progressive_uld_plot(uld, packages_to_add):
         Plotly figure object
     """
 
-
     # Create columns for plot and packing sequence
     col1, col2 = st.columns([2, 1])
     with col1:
         # Create a Streamlit container for the plot
         plot_container = st.empty()
-        
-        # # Placeholder for displaying full instructions
-        # instructions_container = st.empty()
-    
+
     with col2:
         # Containers for upcoming and completed packing sequence
         upcoming_sequence_container = st.empty()
         completed_sequence_container = st.empty()
-    
+
     # Generate color map for all packages
     color_map = generate_color_map(packages_to_add)
-    
+
     # Determine plot boundaries
     max_length = float(uld.length)
     max_width = float(uld.width)
     max_height = float(uld.height)
-    
-    # Create the layout with improved aesthetics
+
+    # ULD boundary vertices
+    x_coords = [0, max_length, max_length, 0, 0, max_length, max_length, 0]
+    y_coords = [0, 0, max_width, max_width, 0, 0, max_width, max_width]
+    z_coords = [0, 0, 0, 0, max_height, max_height, max_height, max_height]
+
+    # ULD edges definition
+    uld_edges = [
+        # Bottom face edges
+        [0, 1], [1, 2], [2, 3], [3, 0],
+        # Top face edges
+        [4, 5], [5, 6], [6, 7], [7, 4],
+        # Vertical connecting edges
+        [0, 4], [1, 5], [2, 6], [3, 7]
+    ]
+
+    # Create ULD boundary traces (edges)
+    boundary_traces = []
+    for edge in uld_edges:
+        boundary_traces.append(
+            go.Scatter3d(
+                x=[x_coords[edge[0]], x_coords[edge[1]]],
+                y=[y_coords[edge[0]], y_coords[edge[1]]],
+                z=[z_coords[edge[0]], z_coords[edge[1]]],
+                mode='lines',
+                line=dict(color='black', width=3),
+                showlegend=False,
+                hoverinfo='none'
+            )
+        )
+
+    # Add semi-transparent faces for the ULD
+    uld_faces = go.Mesh3d(
+        x=x_coords,
+        y=y_coords,
+        z=z_coords,
+        color='blue',
+        opacity=0.3,
+        i = [0, 1, 0, 1, 1, 2, 0, 4, 3, 7, 4, 5],
+        j = [1, 4, 1, 3, 2, 5, 3, 3, 2, 2, 5, 7],
+        k = [4, 5, 3, 2, 5, 6, 4, 7, 7, 6, 7, 6],
+        name="ULD",
+        showscale=False
+    )
+
+    # Create the layout
     layout = go.Layout(
         scene=dict(
             xaxis=dict(
                 title=dict(text='Length', font=dict(size=16, color='black', family='Arial, bold')),
                 range=[0, max_length],
-                tickmode='array',
-                tickvals=np.linspace(0, max_length, 11),
-                ticktext=[f'{int(x)}' for x in np.linspace(0, max_length, 11)],
                 gridcolor='lightgray',
                 showbackground=True,
                 backgroundcolor='rgba(230,230,230,0.5)'
@@ -310,9 +261,6 @@ def create_progressive_uld_plot(uld, packages_to_add):
             yaxis=dict(
                 title=dict(text='Width', font=dict(size=14, color='black', family='Arial, bold')),
                 range=[0, max_width],
-                tickmode='array',
-                tickvals=np.linspace(0, max_width, 11),
-                ticktext=[f'{int(x)}' for x in np.linspace(0, max_width, 11)],
                 gridcolor='lightgray',
                 showbackground=True,
                 backgroundcolor='rgba(230,230,230,0.5)'
@@ -320,9 +268,6 @@ def create_progressive_uld_plot(uld, packages_to_add):
             zaxis=dict(
                 title=dict(text='Height', font=dict(size=14, color='black', family='Arial, bold')),
                 range=[0, max_height],
-                tickmode='array',
-                tickvals=np.linspace(0, max_height, 11),
-                ticktext=[f'{int(x)}' for x in np.linspace(0, max_height, 11)],
                 gridcolor='lightgray',
                 showbackground=True,
                 backgroundcolor='rgba(230,230,230,0.5)'
@@ -339,30 +284,27 @@ def create_progressive_uld_plot(uld, packages_to_add):
         paper_bgcolor='white'
     )
 
-
-     # Prepare sequence lists
+    # Prepare sequence lists
     upcoming_packages = [p.id for p in packages_to_add]
     completed_packages = []
 
-    
     # Progressive package addition
     for i in range(1, len(packages_to_add) + 1):
         # Create traces for packages added so far
         current_packages = packages_to_add[:i]
-        all_traces = []
-        
+        all_traces = [uld_faces] + boundary_traces  # Start with ULD faces and boundaries
+
         for package in current_packages:
             all_traces.extend(create_package_mesh(package, color_map))
-        
+
         # Create figure with current packages
         fig = go.Figure(data=all_traces, layout=layout)
-        
+
         # Update Streamlit plot
         with col1:
             plot_container.plotly_chart(fig, use_container_width=True)
-        
+
         # Update packing sequence
-        # Move first package from upcoming to completed
         if upcoming_packages:
             current_package = upcoming_packages.pop(0)
             completed_packages.append(current_package)
@@ -373,18 +315,15 @@ def create_progressive_uld_plot(uld, packages_to_add):
                 upcoming_sequence_container.markdown(f"Upcoming Sequence:  \n`{','.join(upcoming_packages)}`")
             else:
                 upcoming_sequence_container.markdown("Upcoming Sequence:  \n`None`")
-        
+
             completed_sequence_container.markdown(f"Packing Sequence Till Now:  \n`{','.join(completed_packages)}`")
 
-
         # Add a small delay to create a progressive loading effect
-        # st.session_state.delay_placeholder.text(f"Adding package {i}/{len(packages_to_add)}")
-        time.sleep(0.1)  # Adjust this value to control speed of addition
-    
-    # Clear the delay placeholder after complete loading
-    st.session_state.delay_placeholder.empty()
-    
+        time.sleep(0.1)
+
     return fig
+
+
 
 def metrics(ulds, packages):
     """

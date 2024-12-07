@@ -22,7 +22,7 @@ Run the following command in the repository folder:
 python main.py
 ```  
 
-For advanced usage, an optional timeout parameter t (in seconds) can be added to control the runtime:  
+For advanced usage, an optional timeout parameter t (in seconds) can be added to control the runtime. Here t is not the total runtime, but the time the MIP solvers will run for:  
 
 ```
 python main.py t
