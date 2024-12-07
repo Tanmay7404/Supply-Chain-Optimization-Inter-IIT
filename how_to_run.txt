@@ -1,0 +1,49 @@
+### Installing the Dependencies  
+
+__Make sure that you have `Python 3.12` installed on your system.__  
+
+Run the following command in your terminal:  
+
+```
+pip install -r requirements.txt
+```  
+
+__Ensure that your system has a valid `Gurobi Named-User License` installed.__  
+
+---
+
+### Running the Program  
+
+#### 1. Command-Line Interface  
+
+Run the following command in the repository folder:  
+
+```
+python main.py
+```  
+
+For advanced usage, an optional timeout parameter t (in seconds) can be added to control the runtime:  
+
+```
+python main.py t
+```  
+
+#### 2. Streamlit Web Application  
+
+To run the Streamlit app, use one of the following commands in the terminal inside the repository folder:  
+
+```
+streamlit run Streamlit_App.py
+```  
+
+If the above doesn't work, try:  
+
+```
+python3 -m streamlit run Streamlit_App.py
+```  
+
+Or:  
+
+```
+python -m streamlit run Streamlit_App.py
+```  
