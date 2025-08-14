@@ -8,6 +8,51 @@ The challenge is to determine which packages to load into which ULDs while adher
 
 We have provided a GUI, deployed using `Streamlit`, to display the packing sequence in each ULD, along with the packing visualization.
 
+## Solution Pipeline  
+[View the full report (PDF)](reports/67_m4_fedex.pdf)
+
+### Overview of Optimization Strategy  
+
+The solution pipeline employs a multi-stage approach to efficiently pack packages into Unit Load Devices (ULDs), combining heuristic methods and Mixed Integer Programming (MIP) techniques.  
+
+### Pipeline Stages  
+
+1. **Initial Data Preprocessing**  
+   - Reorder ULD and package data using custom heuristics.  
+   - Prepare data for an efficient placement strategy.  
+
+2. **Package Classification**  
+   - Separate packages into:  
+     - **Priority Packages**: High-importance items.  
+     - **Economy Packages**: Standard items.  
+
+3. **Initial Package Assignment**  
+   - **Extreme Points Filling**: Assign packages using extreme point placement to optimize spatial utilization.  
+   - **Tri-Planar Projection**: Analyze and optimize placements along three axes (X, Y, Z).  
+
+4. **Space Defragmentation**  
+   - Reorganize package placements to minimize unused space and improve ULD efficiency.  
+
+5. **Second Projection and Refinement**  
+   - Repeat tri-planar projection for further optimization.  
+
+6. **First Mixed Integer Programming (MIP) Stage**  
+   - Attempt to fit unassigned packages using mathematical optimization.  
+   - Execute for a predefined number of iterations.  
+
+7. **Second MIP Stage**  
+   - Focus on package swapping and optimizing assignments.  
+   - Run additional iterations to maximize placement efficiency.  
+
+### Optimization Objectives  
+
+- Maximize ULD space utilization.  
+- Prioritize critical (priority) packages.  
+- Minimize transportation costs.  
+- Reduce the number of unused or partially filled ULDs.  
+
+---
+
 ## Deployment  
 
 ### Installing the Dependencies  
@@ -129,49 +174,12 @@ After input, the app will:
 
 ---
 
-## Solution Pipeline  
+### Demo
 
-### Overview of Optimization Strategy  
 
-The solution pipeline employs a multi-stage approach to efficiently pack packages into Unit Load Devices (ULDs), combining heuristic methods and Mixed Integer Programming (MIP) techniques.  
+https://github.com/user-attachments/assets/7620c50d-f914-449e-8498-6cc412d363d5
 
-### Pipeline Stages  
 
-1. **Initial Data Preprocessing**  
-   - Reorder ULD and package data using custom heuristics.  
-   - Prepare data for an efficient placement strategy.  
-
-2. **Package Classification**  
-   - Separate packages into:  
-     - **Priority Packages**: High-importance items.  
-     - **Economy Packages**: Standard items.  
-
-3. **Initial Package Assignment**  
-   - **Extreme Points Filling**: Assign packages using extreme point placement to optimize spatial utilization.  
-   - **Tri-Planar Projection**: Analyze and optimize placements along three axes (X, Y, Z).  
-
-4. **Space Defragmentation**  
-   - Reorganize package placements to minimize unused space and improve ULD efficiency.  
-
-5. **Second Projection and Refinement**  
-   - Repeat tri-planar projection for further optimization.  
-
-6. **First Mixed Integer Programming (MIP) Stage**  
-   - Attempt to fit unassigned packages using mathematical optimization.  
-   - Execute for a predefined number of iterations.  
-
-7. **Second MIP Stage**  
-   - Focus on package swapping and optimizing assignments.  
-   - Run additional iterations to maximize placement efficiency.  
-
-### Optimization Objectives  
-
-- Maximize ULD space utilization.  
-- Prioritize critical (priority) packages.  
-- Minimize transportation costs.  
-- Reduce the number of unused or partially filled ULDs.  
-
----
 
 ### Potential Future Enhancements  
 
